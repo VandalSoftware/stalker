@@ -1,11 +1,14 @@
 package com.vandalsoftware.tools;
 
+import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,14 +25,32 @@ public class ClassFileReader {
     }
 
     public static void main(String[] args) {
+        final BufferedReader buf = new BufferedReader(new InputStreamReader(System.in));
+        final ArrayList<String> input = new ArrayList<String>();
+        try {
+            input.add(buf.readLine());
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            closeQuietly(buf);
+        }
+
         final ClassFileReader reader = new ClassFileReader();
         reader.read(args[0]);
         // Check each file for usage of each input
-        String[] input = new String[args.length - 1];
-        System.arraycopy(args, 1, input, 0, input.length);
         final File[] files = reader.usages(input);
         for (File f : files) {
             System.out.println(f);
+        }
+    }
+
+    private static void closeQuietly(Closeable c) {
+        if (c != null) {
+            try {
+                c.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -123,13 +144,7 @@ public class ClassFileReader {
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (stream != null) {
-                try {
-                    stream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            closeQuietly(stream);
         }
     }
 
@@ -145,7 +160,7 @@ public class ClassFileReader {
         }
     }
 
-    public File[] usages(String[] classNames) {
+    public File[] usages(Collection<String> classNames) {
         final ArrayList<File> usages = new ArrayList<File>();
         for (String className : classNames) {
             for (Map.Entry<File, ClassNameCollector> entry : this.collectorMap.entrySet()) {
