@@ -160,6 +160,22 @@ public class ClassFileReader {
         }
     }
 
+    /**
+     * Check for usages of a single class name.
+     */
+    public File[] usages(String className) {
+        final ArrayList<File> usages = new ArrayList<File>();
+        for (Map.Entry<File, ClassNameCollector> entry : this.collectorMap.entrySet()) {
+            if (entry.getValue().check(className)) {
+                usages.add(entry.getKey());
+            }
+        }
+        return usages.toArray(new File[usages.size()]);
+    }
+
+    /**
+     * Check for usages of collection of class names.
+     */
     public File[] usages(Collection<String> classNames) {
         final ArrayList<File> usages = new ArrayList<File>();
         for (String className : classNames) {
