@@ -13,7 +13,7 @@ class ClassNameCollector implements ClassFileReadListener {
     /**
      * Convert a class specified as a field descriptor into a fully-qualified class name.
      */
-    private String getClassName(String fieldDescriptor) {
+    public static String getClassName(String fieldDescriptor) {
         final int length = fieldDescriptor.length();
         int i;
         for (i = 0; i < length; i++) {
@@ -57,7 +57,7 @@ class ClassNameCollector implements ClassFileReadListener {
         this.classNames = new HashSet<String>();
         for (int index : this.classes) {
             if (index != 0) {
-                final String classDescriptor = this.strings[index - 1];
+                final String classDescriptor = this.strings[index];
                 final String name = getClassName(classDescriptor);
                 if (!"".equals(name)) {
                     this.classNames.add(name);

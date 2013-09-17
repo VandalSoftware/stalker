@@ -8,6 +8,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -73,72 +74,11 @@ public class ClassFileReader {
         }
     }
 
-    private void readClassFile(File f, ClassFileReadListener l) {
+    public void readFile(File f, ClassFileReadListener l) {
         FileInputStream stream = null;
         try {
             stream = new FileInputStream(f);
-            DataInputStream in = new DataInputStream(stream);
-            // Skip magic, minor_version, and major_version
-            final int magic = in.readInt();
-            final int minorVersion = in.readUnsignedShort();
-            final int majorVersion = in.readUnsignedShort();
-            final int constantPoolCount = in.readUnsignedShort();
-            l.onReadClassFileInfo(magic, minorVersion, majorVersion, constantPoolCount);
-            for (int i = 0; i < constantPoolCount; i++) {
-                final int tag = in.readUnsignedByte();
-                switch (tag) {
-                    case 1: { // CONSTANT_Utf8
-                        final String s = in.readUTF();
-                        l.onReadUtf8(i, s);
-                        break;
-                    }
-                    case 3: // CONSTANT_Integer
-                    case 4: { // CONSTANT_Float
-                        in.readInt(); // bytes
-                    }
-                    case 5: // CONSTANT_Long
-                    case 6: { // CONSTANT_Double
-                        in.readInt(); // high_bytes
-                        in.readInt(); // low_bytes
-                    }
-                    case 7: { // CONSTANT_Class
-                        final int nameIndex = in.readUnsignedShort(); // name_index
-                        l.onReadClass(i, nameIndex);
-                        break;
-                    }
-                    case 8: { // CONSTANT_String
-                        in.readUnsignedShort(); // string_index
-                        break;
-                    }
-                    case 9: // CONSTANT_Fieldref
-                    case 10: // CONSTANT_Methodref
-                    case 11: { // CONSTANT_InterfaceMethodref
-                        in.readUnsignedShort(); // class_index
-                        in.readUnsignedShort(); // name_and_type_index
-                        break;
-                    }
-                    case 12: { // CONSTANT_NameAndType
-                        in.readShort(); // name_index
-                        in.readShort(); // descriptor_index
-                        break;
-                    }
-                    case 15: { // CONSTANT_MethodHandle
-                        in.readUnsignedByte(); // reference_kind
-                        in.readUnsignedShort(); // reference_index
-                        break;
-                    }
-                    case 16: { // CONSTANT_MethodType
-                        in.readUnsignedShort(); // descriptor_index
-                        break;
-                    }
-                    case 18: { // CONSTANT_InvokeDynamic
-                        in.readUnsignedShort(); // bootstrap_method_attr_index
-                        in.readUnsignedShort(); // name_and_type_index
-                        break;
-                    }
-                }
-            }
-            l.onReadFinished();
+            readInputStream(stream, l);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
@@ -148,13 +88,84 @@ public class ClassFileReader {
         }
     }
 
+    public void readInputStream(InputStream stream, ClassFileReadListener l) throws IOException {
+        DataInputStream in = new DataInputStream(stream);
+        // Skip magic, minor_version, and major_version
+        final int magic = in.readInt();
+        final int minorVersion = in.readUnsignedShort();
+        final int majorVersion = in.readUnsignedShort();
+        final int constantPoolCount = (in.readUnsignedShort() & 0xffff) - 1;
+        l.onReadClassFileInfo(magic, minorVersion, majorVersion, constantPoolCount);
+        for (int i = 0; i < constantPoolCount; i++) {
+            final int tag = in.readUnsignedByte();
+            switch (tag) {
+                case 1: { // CONSTANT_Utf8
+                    final String s = in.readUTF();
+                    l.onReadUtf8(i, s);
+                    break;
+                }
+                case 3: // CONSTANT_Integer
+                case 4: { // CONSTANT_Float
+                    in.readInt(); // bytes
+                    break;
+                }
+                case 5: // CONSTANT_Long
+                case 6: { // CONSTANT_Double
+                    in.readInt(); // high_bytes
+                    in.readInt(); // low_bytes
+                    // Increment the index. 8-byte constants take up two entries because the i+1
+                    // position is unusable. In Sun's own words, "In retrospect, making 8-byte
+                    // constants take two constant pool entries was a poor choice."
+                    i++;
+                    break;
+                }
+                case 7: { // CONSTANT_Class
+                    // name_index is one-based so offset by -1
+                    l.onReadClass(i, (in.readShort() & 0xffff) - 1);
+                    break;
+                }
+                case 8: { // CONSTANT_String
+                    in.readUnsignedShort(); // string_index
+                    break;
+                }
+                case 9: // CONSTANT_Fieldref
+                case 10: // CONSTANT_Methodref
+                case 11: { // CONSTANT_InterfaceMethodref
+                    in.readUnsignedShort(); // class_index
+                    in.readUnsignedShort(); // name_and_type_index
+                    break;
+                }
+                case 12: { // CONSTANT_NameAndType
+                    in.readShort(); // name_index
+                    in.readShort(); // descriptor_index
+                    break;
+                }
+                case 15: { // CONSTANT_MethodHandle
+                    in.readUnsignedByte(); // reference_kind
+                    in.readUnsignedShort(); // reference_index
+                    break;
+                }
+                case 16: { // CONSTANT_MethodType
+                    in.readUnsignedShort(); // descriptor_index
+                    break;
+                }
+                case 18: { // CONSTANT_InvokeDynamic
+                    in.readUnsignedShort(); // bootstrap_method_attr_index
+                    in.readUnsignedShort(); // name_and_type_index
+                    break;
+                }
+            }
+        }
+        l.onReadFinished();
+    }
+
     public void read(String path) {
         final ArrayList<File> files = new ArrayList<File>();
         listFiles(path, files);
         for (File f : files) {
             if (f.isFile()) {
                 final ClassNameCollector collector = new ClassNameCollector();
-                readClassFile(f, collector);
+                readFile(f, collector);
                 this.collectorMap.put(f, collector);
             }
         }
