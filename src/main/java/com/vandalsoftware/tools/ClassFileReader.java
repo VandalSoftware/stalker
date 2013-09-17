@@ -9,37 +9,50 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 /**
  * @author Jonathan Le
  */
 public class ClassFileReader {
+    private HashMap<File, ClassNameCollector> collectorMap;
+
+    public ClassFileReader() {
+        this.collectorMap = new HashMap<File, ClassNameCollector>();
+    }
+
     public static void main(String[] args) {
-        final String path = args[0];
-        final ArrayList<File> files = new ArrayList<File>();
-        HashMap<File, ClassNameCollector> collectorMap = new HashMap<File, ClassNameCollector>();
-        listFiles(path, files);
-        for (File f : files) {
-            if (f.isFile()) {
-                final ClassNameCollector collector = new ClassNameCollector();
-                readClassFile(f, collector);
-                collectorMap.put(f, collector);
-            }
-        }
+        final ClassFileReader reader = new ClassFileReader();
+        reader.read(args[0]);
         // Check each file for usage of each input
-        final int length = args.length;
-        for (int i = 1; i < length; i++) {
-            for (Map.Entry<File, ClassNameCollector> entry : collectorMap.entrySet()) {
-                if (entry.getValue().check(args[i])) {
-                    System.out.println(entry.getKey() + " uses " + args[i]);
+        String[] input = new String[args.length - 1];
+        System.arraycopy(args, 1, input, 0, input.length);
+        final File[] files = reader.usages(input);
+        for (File f : files) {
+            System.out.println(f);
+        }
+    }
+
+    private void listFiles(String path, Collection<File> c) {
+        final File dir = new File(path);
+        if (dir.exists()) {
+            final File[] files = dir.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File file, String s) {
+                    final File f = new File(file, s);
+                    return f.isDirectory() || s.endsWith(".class");
                 }
+            });
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    listFiles(f.getPath(), c);
+                }
+                c.add(f);
             }
         }
     }
 
-    private static void readClassFile(File f, ClassFileReadListener l) {
+    private void readClassFile(File f, ClassFileReadListener l) {
         FileInputStream stream = null;
         try {
             stream = new FileInputStream(f);
@@ -120,104 +133,27 @@ public class ClassFileReader {
         }
     }
 
-    private static void listFiles(String path, Collection<File> c) {
-        final File dir = new File(path);
-        if (dir.exists()) {
-            final File[] files = dir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File file, String s) {
-                    final File f = new File(file, s);
-                    return f.isDirectory() || s.endsWith(".class");
-                }
-            });
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    listFiles(f.getPath(), c);
-                }
-                c.add(f);
+    public void read(String path) {
+        final ArrayList<File> files = new ArrayList<File>();
+        listFiles(path, files);
+        for (File f : files) {
+            if (f.isFile()) {
+                final ClassNameCollector collector = new ClassNameCollector();
+                readClassFile(f, collector);
+                this.collectorMap.put(f, collector);
             }
         }
     }
 
-    /**
-     * Convert a class specified as a field descriptor into a fully-qualified class name.
-     */
-    private static String getClassName(String fieldDescriptor) {
-        final int length = fieldDescriptor.length();
-        int i;
-        for (i = 0; i < length; i++) {
-            final char c = fieldDescriptor.charAt(i);
-            if (c != 'B' && c != 'C' && c != 'D' && c != 'F' && c != 'I' && c != 'J' && c != 'S' &&
-                    c != 'Z' && c != 'L' && c != '[') {
-                break;
-            }
-        }
-        if (i < length) {
-            int end = fieldDescriptor.length();
-            // Exclude semicolon from class descriptors
-            if (fieldDescriptor.indexOf(';') != -1) {
-                end -= 1;
-            }
-            return fieldDescriptor.substring(i, end).replace('/', '.');
-        } else {
-            return "";
-        }
-    }
-
-    private static class ClassNameCollector implements ClassFileReadListener {
-        private String[] strings;
-        private int[] classes;
-        private HashSet<String> classNames;
-
-        @Override
-        public void onReadClass(int cpIndex, int nameIndex) {
-            this.classes[cpIndex] = nameIndex;
-        }
-
-        @Override
-        public void onReadUtf8(int cpIndex, String string) {
-            this.strings[cpIndex] = string;
-        }
-
-        @Override
-        public void onReadClassFileInfo(int magic, int minorVersion, int majorVersion,
-                                        int constantPoolCount) {
-            this.strings = new String[constantPoolCount];
-            this.classes = new int[constantPoolCount];
-        }
-
-        @Override
-        public void onReadFinished() {
-            this.classNames = new HashSet<String>();
-            for (int index : this.classes) {
-                if (index != 0) {
-                    final String classDescriptor = this.strings[index - 1];
-                    final String name = getClassName(classDescriptor);
-                    if (!"".equals(name)) {
-                        this.classNames.add(name);
-                    }
+    public File[] usages(String[] classNames) {
+        final ArrayList<File> usages = new ArrayList<File>();
+        for (String className : classNames) {
+            for (Map.Entry<File, ClassNameCollector> entry : this.collectorMap.entrySet()) {
+                if (entry.getValue().check(className)) {
+                    usages.add(entry.getKey());
                 }
             }
         }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            for (String name : this.classNames) {
-                sb.append(name).append('\n');
-            }
-            return sb.toString();
-        }
-
-        public boolean check(String className) {
-            if (this.classNames != null) {
-                for (String name : this.classNames) {
-                    if (name.startsWith(className)) {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
+        return usages.toArray(new File[usages.size()]);
     }
 }
