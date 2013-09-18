@@ -46,12 +46,12 @@ uploadArchives {
             configuration = configurations.archives
             def repo
             if (project.ext.release) {
-                repo = "releases"
+                repo = "$sonatypeRepo/releases"
             } else {
-                repo = "snapshots"
+                repo = "$sonatypeSnapshotRepo/snapshots"
             }
-            repository(url: "$nexusRepo/$repo") {
-                authentication(userName: nexusUsername, password: nexusPassword)
+            repository(url: "$repo") {
+                authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
             pom.artifactId = "stalker"
             pom.project {
