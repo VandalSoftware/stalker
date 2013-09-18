@@ -27,7 +27,7 @@ class StalkerPlugin implements Plugin<Project> {
                     return standardOutput.toString()
                 }
             })
-            Task usagesTask = project.task([type: Usages, dependsOn: changesTask], "usages", {
+            Task usagesTask = project.task([type: Usages, dependsOn: changesTask], "stalk", {
                 ext.srcRoots = {
                     return extension.getSrcRoots()
                 }
