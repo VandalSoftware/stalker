@@ -9,7 +9,7 @@ ext.release = has("release")
 ext.localRepo = file("$buildDir/repo/")
 ext.remoteRepo = file("$buildDir/repo/")
 
-version = getVersion("0.1.0")
+version = getVersion("0.1.1")
 
 jar {
     baseName = "stalker"
