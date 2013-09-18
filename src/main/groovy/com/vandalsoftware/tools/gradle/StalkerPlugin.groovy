@@ -37,6 +37,8 @@ class StalkerPlugin implements Plugin<Project> {
                 ext.targets = {
                     return extension.getTargetClassPaths()
                 }
+                description = "Analyze class usage"
+                group = "Analyze"
             }) << {
                 if (extension.afterStalk) {
                     extension.afterStalk(classNames)
