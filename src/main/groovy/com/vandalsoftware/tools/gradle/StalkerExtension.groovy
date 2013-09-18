@@ -7,6 +7,7 @@ class StalkerExtension {
     Set<File> srcRoots
     Set<File> targetClassPaths
     String refId
+    OutputStream standardOutput
 
     StalkerExtension() {
         srcRoots = new LinkedHashSet<>()
