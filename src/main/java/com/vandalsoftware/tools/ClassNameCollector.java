@@ -78,7 +78,7 @@ class ClassNameCollector implements ClassFileReadListener {
     public boolean check(String className) {
         if (this.classNames != null) {
             for (String name : this.classNames) {
-                if (name.startsWith(className)) {
+                if (name.equals(className)) {
                     return true;
                 }
             }

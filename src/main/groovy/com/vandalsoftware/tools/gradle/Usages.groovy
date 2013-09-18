@@ -8,17 +8,40 @@ import org.gradle.api.tasks.TaskAction
  * @author Jonathan Le
  */
 class Usages extends DefaultTask {
-    String classPath
-
-    File[] files
+    Set<File> files
+    Set<String> classNames
 
     @TaskAction
     void usages() {
+        def srcRoots = srcRoots()
+        Set set = new LinkedHashSet()
         def classes = input().split("\n")
+        classes.each() { String filePath ->
+            srcRoots.each() { File srcRoot ->
+                if (filePath.startsWith(srcRoot.path)) {
+                    set.add(transform(srcRoot.path, filePath, ".java"))
+                }
+            }
+        }
         final ClassFileReader reader = new ClassFileReader();
-        reader.read(classPath);
+        def targets = targets()
+        targets.each() { File dir ->
+            reader.collect(dir.path);
+        }
         // Check each file for usage of each input
-        def classNames = classes as Set
-        files = reader.usages(classNames);
+        File[] used = reader.usages(set);
+        classNames = new LinkedHashSet<>()
+        used.each() { f ->
+            targets.each() { File target ->
+                if (f.path.startsWith(target.path)) {
+                    classNames.add(transform(target.path, f.path, ".class"))
+                }
+            }
+        }
+    }
+
+    private static String transform(String basePath, String path, String extension) {
+        return path.substring(basePath.length() + 1,
+                path.indexOf(extension)).replace('/', '.')
     }
 }

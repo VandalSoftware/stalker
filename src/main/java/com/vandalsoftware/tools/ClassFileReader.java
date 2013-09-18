@@ -1,5 +1,8 @@
 package com.vandalsoftware.tools;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.DataInputStream;
@@ -13,6 +16,7 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -20,9 +24,11 @@ import java.util.Map;
  */
 public class ClassFileReader {
     private HashMap<File, ClassNameCollector> collectorMap;
+    private Logger logger;
 
     public ClassFileReader() {
         this.collectorMap = new HashMap<File, ClassNameCollector>();
+        this.logger = LoggerFactory.getLogger(ClassFileReader.class);
     }
 
     public static void main(String[] args) {
@@ -37,7 +43,7 @@ public class ClassFileReader {
         }
 
         final ClassFileReader reader = new ClassFileReader();
-        reader.read(args[0]);
+        reader.collect(args[0]);
         // Check each file for usage of each input
         final File[] files = reader.usages(input);
         for (File f : files) {
@@ -159,7 +165,7 @@ public class ClassFileReader {
         l.onReadFinished();
     }
 
-    public void read(String path) {
+    public void collect(String path) {
         final ArrayList<File> files = new ArrayList<File>();
         listFiles(path, files);
         for (File f : files) {
@@ -175,7 +181,7 @@ public class ClassFileReader {
      * Check for usages of a single class name.
      */
     public File[] usages(String className) {
-        final ArrayList<File> usages = new ArrayList<File>();
+        final HashSet<File> usages = new HashSet<File>();
         for (Map.Entry<File, ClassNameCollector> entry : this.collectorMap.entrySet()) {
             if (entry.getValue().check(className)) {
                 usages.add(entry.getKey());
@@ -188,11 +194,14 @@ public class ClassFileReader {
      * Check for usages of collection of class names.
      */
     public File[] usages(Collection<String> classNames) {
-        final ArrayList<File> usages = new ArrayList<File>();
+        final HashSet<File> usages = new HashSet<File>();
         for (String className : classNames) {
             for (Map.Entry<File, ClassNameCollector> entry : this.collectorMap.entrySet()) {
-                if (entry.getValue().check(className)) {
-                    usages.add(entry.getKey());
+                final ClassNameCollector collector = entry.getValue();
+                final File file = entry.getKey();
+                if (collector.check(className)) {
+                    this.logger.info(className + " used by " + file);
+                    usages.add(file);
                 }
             }
         }

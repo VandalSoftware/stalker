@@ -5,13 +5,12 @@ import org.gradle.api.tasks.Exec
 /**
  * @author Jonathan Le
  */
-class GitLsTree extends Exec {
-    GitLsTree() {
+class GetChangedFiles extends Exec {
+    GetChangedFiles() {
         super()
         commandLine("git")
-        args("ls-tree")
+        args("diff-tree")
+        args("--no-commit-id")
         args("--name-only")
-        args("-r")
-        args("HEAD")
     }
 }
