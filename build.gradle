@@ -1,6 +1,7 @@
 apply plugin: "groovy"
 apply plugin: 'maven'
 apply plugin: 'java'
+apply plugin: 'signing'
 
 group = "com.vandalsoftware.tools.gradle"
 
@@ -40,26 +41,54 @@ task publishLocal(type: Upload) {
     }
 }
 
+signing {
+    if (project.ext.release) {
+        sign configurations.archives
+    }
+}
+
 uploadArchives {
     repositories {
         mavenDeployer {
             configuration = configurations.archives
+            beforeDeployment {
+                MavenDeployment deployment -> signing.signPom(deployment)
+            }
             def repo
             if (project.ext.release) {
-                repo = "$sonatypeRepo/releases"
+                repo = sonatypeRepo
             } else {
-                repo = "$sonatypeSnapshotRepo/snapshots"
+                repo = sonatypeSnapshotRepo
             }
             repository(url: "$repo") {
                 authentication(userName: sonatypeUsername, password: sonatypePassword)
             }
             pom.artifactId = "stalker"
             pom.project {
+                name 'Stalker'
+                packaging 'jar'
+                description 'Class analyzing Gradle plugin'
+                url 'https://github.com/jonathanle/stalker'
+
+                scm {
+                    url 'scm:git@github.com:jonathanle/stalker.git'
+                    connection 'scm:git@github.com:jonathanle/stalker.git'
+                    developerConnection 'scm:git@github.com:jonathanle/stalker.git'
+                }
+
                 licenses {
                     license {
                         name 'The Apache Software License, Version 2.0'
                         url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                         distribution 'repo'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'jle'
+                        name 'Jonathan Le'
+                        email 'jonathanle@gmail.com'
                     }
                 }
             }
