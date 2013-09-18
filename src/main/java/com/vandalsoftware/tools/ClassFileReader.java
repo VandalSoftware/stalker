@@ -61,8 +61,7 @@ public class ClassFileReader {
         }
     }
 
-    private void listFiles(String path, Collection<File> c) {
-        final File dir = new File(path);
+    private void listFiles(File dir, Collection<File> c) {
         if (dir.exists()) {
             final File[] files = dir.listFiles(new FilenameFilter() {
                 @Override
@@ -73,7 +72,7 @@ public class ClassFileReader {
             });
             for (File f : files) {
                 if (f.isDirectory()) {
-                    listFiles(f.getPath(), c);
+                    listFiles(f, c);
                 }
                 c.add(f);
             }
@@ -165,9 +164,9 @@ public class ClassFileReader {
         l.onReadFinished();
     }
 
-    public void collect(String path) {
+    public void collect(File dir) {
         final ArrayList<File> files = new ArrayList<File>();
-        listFiles(path, files);
+        listFiles(dir, files);
         for (File f : files) {
             if (f.isFile()) {
                 final ClassNameCollector collector = new ClassNameCollector();
@@ -175,6 +174,10 @@ public class ClassFileReader {
                 this.collectorMap.put(f, collector);
             }
         }
+    }
+
+    public void collect(String path) {
+        collect(new File(path));
     }
 
     /**

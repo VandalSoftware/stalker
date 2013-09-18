@@ -26,7 +26,7 @@ class Usages extends DefaultTask {
         final ClassFileReader reader = new ClassFileReader();
         def targets = targets()
         targets.each() { File dir ->
-            reader.collect(dir.path);
+            reader.collect(dir);
         }
         // Check each file for usage of each input
         File[] used = reader.usages(set);
