@@ -38,15 +38,19 @@ class StalkerPlugin implements Plugin<Project> {
                     return extension.getTargetClassPaths()
                 }
             }) << {
-                if (extension.standardOutput != null) {
-                    PrintStream out = new PrintStream(extension.standardOutput, true)
-                    classNames.each() {
-                        out.println(it)
-                    }
-                    out.close()
+                if (extension.afterStalk) {
+                    extension.afterStalk(classNames)
                 } else {
-                    classNames.each() {
-                        println(it);
+                    if (extension.standardOutput != null) {
+                        PrintStream out = new PrintStream(extension.standardOutput, true)
+                        classNames.each() {
+                            out.println(it)
+                        }
+                        out.close()
+                    } else {
+                        classNames.each() {
+                            println(it);
+                        }
                     }
                 }
             }
