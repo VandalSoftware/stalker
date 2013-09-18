@@ -15,7 +15,7 @@ class StalkerPlugin implements Plugin<Project> {
         extension = project.extensions.create("stalker", StalkerExtension)
         project.afterEvaluate {
             Task changesTask = project.task([type: GetChangedFiles], "changes", {
-                def ref = extension.getRefId()
+                def ref = extension.getRevision()
                 args "-r"
                 if (ref) {
                     args ref

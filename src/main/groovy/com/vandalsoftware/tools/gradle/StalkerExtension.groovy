@@ -6,7 +6,7 @@ package com.vandalsoftware.tools.gradle
 class StalkerExtension {
     Set<File> srcRoots
     Set<File> targetClassPaths
-    String refId
+    String revision
     OutputStream standardOutput
 
     Closure afterStalk
