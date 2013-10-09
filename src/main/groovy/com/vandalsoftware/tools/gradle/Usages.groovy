@@ -32,11 +32,11 @@ class Usages extends DefaultTask {
                         ClassInfo info = sourceReader.collectFile(f)
                         if (info != null) {
                             String cname = info.getThisClassName()
-                            logger.info(cname + " is an affected class")
+                            logger.debug(cname + " is an affected class")
                             inputClassNames.add(cname);
                             def subclasses = sourceReader.subclasses(cname)
                             subclasses.each() {
-                                logger.info(it + " is an affected subclass")
+                                logger.debug(it + " is an affected subclass")
                             }
                             inputClassNames.addAll(subclasses)
                         }
@@ -51,11 +51,11 @@ class Usages extends DefaultTask {
         }
         // Check each file for usage of each input
         File[] used = targetReader.usages(inputClassNames);
-        this.classNames = new LinkedHashSet<>()
+        classNames = new LinkedHashSet<>()
         used.each() { f ->
             targetClassPaths.each() { File target ->
                 if (f.path.startsWith(target.path)) {
-                    this.classNames.add(pathToClassName(target.path, f.path, ".class"))
+                    classNames.add(pathToClassName(target.path, f.path, ".class"))
                 }
             }
         }

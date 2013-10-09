@@ -60,7 +60,6 @@ class StalkerPlugin implements Plugin<Project> {
                     }
                 }
             }
-            // Only execute if at least one class path exists
             stalkTask.onlyIf {
                 it.checkInputs()
             }
