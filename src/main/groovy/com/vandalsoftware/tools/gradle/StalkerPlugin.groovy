@@ -32,6 +32,9 @@ class StalkerPlugin implements Plugin<Project> {
                 ext.srcRoots = {
                     return extension.getSrcRoots()
                 }
+                ext.classpaths = {
+                    return extension.getSrcClassPaths()
+                }
                 ext.input = {
                     return changesTask.output()
                 }

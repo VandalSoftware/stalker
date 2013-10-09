@@ -1,6 +1,7 @@
 package com.vandalsoftware.tools.gradle
 
 import com.vandalsoftware.tools.ClassFileReader
+import com.vandalsoftware.tools.ClassInfo
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -14,34 +15,54 @@ class Usages extends DefaultTask {
     @TaskAction
     void usages() {
         def srcRoots = srcRoots()
-        Set set = new LinkedHashSet()
+        def srcClassPaths = classpaths()
         def classes = input()
+        Set inputClassNames = new LinkedHashSet()
+        final ClassFileReader sourceReader = new ClassFileReader();
+        srcClassPaths.each() { File dir ->
+            sourceReader.collect(dir);
+        }
         classes.each() { String filePath ->
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
-                    set.add(transform(srcRoot.path, filePath, ".java"))
+                    String relFilePath = filePath.substring(srcRoot.path.length() + 1,
+                            filePath.indexOf(".java")) + ".class"
+                    srcClassPaths.each() { File cp ->
+                        File f = new File(cp, relFilePath)
+                        ClassInfo info = sourceReader.collectFile(f)
+                        if (info != null) {
+                            String cname = info.getThisClassName()
+                            logger.info(cname + " is an affected class")
+                            inputClassNames.add(cname);
+                            def subclasses = sourceReader.subclasses(cname)
+                            subclasses.each() {
+                                logger.info(it + " is an affected subclass")
+                            }
+                            inputClassNames.addAll(subclasses)
+                        }
+                    }
                 }
             }
         }
-        final ClassFileReader reader = new ClassFileReader();
-        def targets = targets()
-        targets.each() { File dir ->
-            reader.collect(dir);
+        final ClassFileReader targetReader = new ClassFileReader();
+        def targetClassPaths = targets()
+        targetClassPaths.each() { File dir ->
+            targetReader.collect(dir);
         }
         // Check each file for usage of each input
-        File[] used = reader.usages(set);
-        classNames = new LinkedHashSet<>()
+        File[] used = targetReader.usages(inputClassNames);
+        this.classNames = new LinkedHashSet<>()
         used.each() { f ->
-            targets.each() { File target ->
+            targetClassPaths.each() { File target ->
                 if (f.path.startsWith(target.path)) {
-                    classNames.add(transform(target.path, f.path, ".class"))
+                    this.classNames.add(pathToClassName(target.path, f.path, ".class"))
                 }
             }
         }
     }
 
     boolean checkInputs() {
-        return srcRoots() && input() && checkTargets()
+        return classpaths() && srcRoots() && input() && checkTargets()
     }
 
     private boolean checkTargets() {
@@ -54,7 +75,7 @@ class Usages extends DefaultTask {
         return run
     }
 
-    private static String transform(String basePath, String path, String extension) {
+    private static String pathToClassName(String basePath, String path, String extension) {
         return path.substring(basePath.length() + 1,
                 path.indexOf(extension)).replace('/', '.')
     }

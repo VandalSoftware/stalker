@@ -170,12 +170,17 @@ public class ClassFileReader {
     /**
      * Collect class file.
      */
-    public void collectFile(File f) {
+    public ClassInfo collectFile(File f) {
         if (f.isFile()) {
-            final ClassInfo info = new ClassInfo();
-            readFile(f, info);
-            this.infoMap.put(f, info);
+            ClassInfo info = this.infoMap.get(f);
+            if (info == null) {
+                info = new ClassInfo();
+                readFile(f, info);
+                this.infoMap.put(f, info);
+            }
+            return info;
         }
+        return null;
     }
 
     /**
@@ -228,5 +233,15 @@ public class ClassFileReader {
             }
         }
         return usages.toArray(new File[usages.size()]);
+    }
+
+    public Collection<String> subclasses(String className) {
+        final HashSet<String> subclasses = new HashSet<String>();
+        for (ClassInfo info : this.infoMap.values()) {
+            if (info.getSuperClassName().equals(className)) {
+                subclasses.add(info.getThisClassName());
+            }
+        }
+        return subclasses;
     }
 }

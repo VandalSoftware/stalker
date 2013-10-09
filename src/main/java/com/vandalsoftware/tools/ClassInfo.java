@@ -5,7 +5,7 @@ import java.util.HashSet;
 /**
  * @author Jonathan Le
  */
-class ClassInfo implements ClassFileReadListener {
+public class ClassInfo implements ClassFileReadListener {
     private static final String JAVA_LANG_OBJECT = "java.lang.Object";
     private String[] strings;
     private int[] classes;
@@ -115,7 +115,11 @@ class ClassInfo implements ClassFileReadListener {
         return !JAVA_LANG_OBJECT.equals(this.superClassName);
     }
 
-    public String getSuperClass() {
+    public String getSuperClassName() {
         return this.superClassName;
+    }
+
+    public String getThisClassName() {
+        return this.thisClassName;
     }
 }
