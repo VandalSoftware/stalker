@@ -7,7 +7,10 @@ group = "com.vandalsoftware.tools.gradle"
 
 ext.release = has("release")
 ext.localRepo = file("$buildDir/repo/")
-ext.remoteRepo = file("$buildDir/repo/")
+ext.sonatypeRepo = has("sonatypeRepo") ? sonatypeRepo : file("$buildDir/repo/releases")
+ext.sonatypeSnapshotRepo = has("sonatypeSnapshotRepo") ? sonatypeSnapshotRepo : file("$buildDir/repo/snapshots")
+ext.sonatypeUsername = has("sonatypeUsername") ? sonatypeUsername : ""
+ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : ""
 
 version = getVersion("0.1.1")
 
@@ -56,12 +59,13 @@ uploadArchives {
             }
             def repo
             if (project.ext.release) {
-                repo = sonatypeRepo
+                repo = project.ext.sonatypeRepo
             } else {
-                repo = sonatypeSnapshotRepo
+                repo = project.ext.sonatypeSnapshotRepo
             }
             repository(url: "$repo") {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
+                authentication(userName: project.ext.sonatypeUsername,
+                        password: project.ext.sonatypePassword)
             }
             pom.artifactId = "stalker"
             pom.project {
