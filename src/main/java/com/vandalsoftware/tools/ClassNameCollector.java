@@ -9,6 +9,8 @@ class ClassNameCollector implements ClassFileReadListener {
     private String[] strings;
     private int[] classes;
     private HashSet<String> classNames;
+    private String thisClassName;
+    private String superClassName;
 
     /**
      * Convert a class specified as a field descriptor into a fully-qualified class name.
@@ -32,6 +34,25 @@ class ClassNameCollector implements ClassFileReadListener {
             return fieldDescriptor.substring(i, end).replace('/', '.');
         } else {
             return "";
+        }
+    }
+
+    @Override
+    public void onReadAccessFlags(int accessFlags) {
+    }
+
+    @Override
+    public void onReadThisClass(int cpIndex) {
+        this.thisClassName = getClassName(this.strings[this.classes[cpIndex - 1]]);
+    }
+
+    @Override
+    public void onReadSuperClass(int cpIndex) {
+        final int index = this.classes[cpIndex - 1];
+        if (index > 0) {
+            this.superClassName = getClassName(this.strings[index]);
+        } else {
+            this.superClassName = "java.lang.Object";
         }
     }
 

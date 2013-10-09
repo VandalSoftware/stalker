@@ -161,6 +161,9 @@ public class ClassFileReader {
                 }
             }
         }
+        l.onReadAccessFlags(in.readUnsignedShort());
+        l.onReadThisClass(in.readUnsignedShort());
+        l.onReadSuperClass(in.readUnsignedShort());
         l.onReadFinished();
     }
 
