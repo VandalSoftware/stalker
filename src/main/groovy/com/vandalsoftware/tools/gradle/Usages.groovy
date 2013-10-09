@@ -15,7 +15,7 @@ class Usages extends DefaultTask {
     void usages() {
         def srcRoots = srcRoots()
         Set set = new LinkedHashSet()
-        def classes = input().split("\n")
+        def classes = input()
         classes.each() { String filePath ->
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
@@ -38,6 +38,20 @@ class Usages extends DefaultTask {
                 }
             }
         }
+    }
+
+    boolean checkInputs() {
+        return srcRoots() && input() && checkTargets()
+    }
+
+    private boolean checkTargets() {
+        boolean run = false
+        targets().each() { File dir ->
+            if (dir.exists()) {
+                run = true
+            }
+        }
+        return run
     }
 
     private static String transform(String basePath, String path, String extension) {

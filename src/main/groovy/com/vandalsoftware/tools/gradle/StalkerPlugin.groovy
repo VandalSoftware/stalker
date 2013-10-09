@@ -24,10 +24,11 @@ class StalkerPlugin implements Plugin<Project> {
                 }
                 standardOutput = new ByteArrayOutputStream()
                 ext.output = {
-                    return standardOutput.toString()
+                    String out = standardOutput.toString()
+                    out.split("\n") as Set
                 }
             })
-            Task usagesTask = project.task([type: Usages, dependsOn: changesTask], "stalk", {
+            Task stalkTask = project.task([type: Usages, dependsOn: changesTask], "stalk", {
                 ext.srcRoots = {
                     return extension.getSrcRoots()
                 }
@@ -57,14 +58,8 @@ class StalkerPlugin implements Plugin<Project> {
                 }
             }
             // Only execute if at least one class path exists
-            usagesTask.onlyIf {
-                boolean run = false
-                it.targets().each() { File dir ->
-                    if (dir.exists()) {
-                        run = true
-                    }
-                }
-                return run
+            stalkTask.onlyIf {
+                it.checkInputs()
             }
         }
     }

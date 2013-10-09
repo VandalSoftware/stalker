@@ -164,6 +164,9 @@ public class ClassFileReader {
         l.onReadFinished();
     }
 
+    /**
+     * Collect class files in a directory.
+     */
     public void collect(File dir) {
         final ArrayList<File> files = new ArrayList<File>();
         listFiles(dir, files);
@@ -176,6 +179,9 @@ public class ClassFileReader {
         }
     }
 
+    /**
+     * Collect class files in a path.
+     */
     public void collect(String path) {
         collect(new File(path));
     }
