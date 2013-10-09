@@ -5,7 +5,8 @@ import java.util.HashSet;
 /**
  * @author Jonathan Le
  */
-class ClassNameCollector implements ClassFileReadListener {
+class ClassInfo implements ClassFileReadListener {
+    private static final String JAVA_LANG_OBJECT = "java.lang.Object";
     private String[] strings;
     private int[] classes;
     private HashSet<String> classNames;
@@ -52,7 +53,7 @@ class ClassNameCollector implements ClassFileReadListener {
         if (index > 0) {
             this.superClassName = getClassName(this.strings[index]);
         } else {
-            this.superClassName = "java.lang.Object";
+            this.superClassName = JAVA_LANG_OBJECT;
         }
     }
 
@@ -105,5 +106,16 @@ class ClassNameCollector implements ClassFileReadListener {
             }
         }
         return false;
+    }
+
+    /**
+     * @return true if this class' superclass is not java.lang.Object.
+     */
+    public boolean hasSuperClass() {
+        return !JAVA_LANG_OBJECT.equals(this.superClassName);
+    }
+
+    public String getSuperClass() {
+        return this.superClassName;
     }
 }
