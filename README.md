@@ -25,6 +25,7 @@ It does this by examining bytecode and completing the closure on dependencies.
 
     stalker {
       srcRoot "src/main/java"
+      srcClassPath "build/classes/main"
       targetClassPath "build/classes/test"
     }
 
