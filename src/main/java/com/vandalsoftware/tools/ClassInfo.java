@@ -5,10 +5,13 @@ import java.util.HashSet;
 /**
  * @author Jonathan Le
  */
-class ClassNameCollector implements ClassFileReadListener {
+public class ClassInfo implements ClassFileReadListener {
+    private static final String JAVA_LANG_OBJECT = "java.lang.Object";
     private String[] strings;
     private int[] classes;
     private HashSet<String> classNames;
+    private String thisClassName;
+    private String superClassName;
 
     /**
      * Convert a class specified as a field descriptor into a fully-qualified class name.
@@ -32,6 +35,25 @@ class ClassNameCollector implements ClassFileReadListener {
             return fieldDescriptor.substring(i, end).replace('/', '.');
         } else {
             return "";
+        }
+    }
+
+    @Override
+    public void onReadAccessFlags(int accessFlags) {
+    }
+
+    @Override
+    public void onReadThisClass(int cpIndex) {
+        this.thisClassName = getClassName(this.strings[this.classes[cpIndex - 1]]);
+    }
+
+    @Override
+    public void onReadSuperClass(int cpIndex) {
+        final int index = this.classes[cpIndex - 1];
+        if (index > 0) {
+            this.superClassName = getClassName(this.strings[index]);
+        } else {
+            this.superClassName = JAVA_LANG_OBJECT;
         }
     }
 
@@ -84,5 +106,20 @@ class ClassNameCollector implements ClassFileReadListener {
             }
         }
         return false;
+    }
+
+    /**
+     * @return true if this class' superclass is not java.lang.Object.
+     */
+    public boolean hasSuperClass() {
+        return !JAVA_LANG_OBJECT.equals(this.superClassName);
+    }
+
+    public String getSuperClassName() {
+        return this.superClassName;
+    }
+
+    public String getThisClassName() {
+        return this.thisClassName;
     }
 }

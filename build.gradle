@@ -6,13 +6,12 @@ apply plugin: 'signing'
 group = "com.vandalsoftware.tools.gradle"
 
 ext.release = has("release")
-ext.localRepo = file("$buildDir/repo/")
 ext.sonatypeRepo = has("sonatypeRepo") ? sonatypeRepo : file("$buildDir/repo/releases")
 ext.sonatypeSnapshotRepo = has("sonatypeSnapshotRepo") ? sonatypeSnapshotRepo : file("$buildDir/repo/snapshots")
 ext.sonatypeUsername = has("sonatypeUsername") ? sonatypeUsername : ""
 ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : ""
 
-version = getVersion("0.1.1")
+version = getVersion("0.2.0")
 
 jar {
     baseName = "stalker"
@@ -39,7 +38,7 @@ task publishLocal(type: Upload) {
     configuration = configurations.archives
     repositories {
         mavenDeployer {
-            repository(url: uri(project.ext.localRepo))
+            repository(url: mavenLocal().getUrl())
         }
     }
 }
@@ -119,6 +118,6 @@ def getVersion(String baseVersion) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.7'
+    gradleVersion = '1.8'
 }
 
