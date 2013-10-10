@@ -11,7 +11,7 @@ ext.sonatypeSnapshotRepo = has("sonatypeSnapshotRepo") ? sonatypeSnapshotRepo : 
 ext.sonatypeUsername = has("sonatypeUsername") ? sonatypeUsername : ""
 ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : ""
 
-version = getVersion("0.2.0")
+version = getVersion("0.2.1")
 
 jar {
     baseName = "stalker"
