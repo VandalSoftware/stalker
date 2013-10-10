@@ -59,6 +59,7 @@ However, Stalker allows you to direct output anywhere you want.
 
     stalker {
       srcRoot "src/main/java"
+      srcClassPath "build/classes/main"
       targetClassPath "build/classes/test"
       standardOutput = new FileOutputStream(new File("out.txt"))
     }
@@ -78,6 +79,7 @@ Taking it one step further, we can use the afterStalk closure to do whatever we 
 
     stalker {
       srcRoot "src/main/java"
+      srcClassPath "build/classes/main"
       targetClassPath "build/classes/test"
       afterStalk { names ->
         names.each() {
