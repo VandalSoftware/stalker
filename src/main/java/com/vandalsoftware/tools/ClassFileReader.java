@@ -23,11 +23,11 @@ import java.util.Map;
  * @author Jonathan Le
  */
 public class ClassFileReader {
-    private HashMap<File, ClassNameCollector> collectorMap;
+    private HashMap<File, ClassInfo> infoMap;
     private Logger logger;
 
     public ClassFileReader() {
-        this.collectorMap = new HashMap<File, ClassNameCollector>();
+        this.infoMap = new HashMap<File, ClassInfo>();
         this.logger = LoggerFactory.getLogger(ClassFileReader.class);
     }
 
@@ -161,21 +161,45 @@ public class ClassFileReader {
                 }
             }
         }
+        l.onReadAccessFlags(in.readUnsignedShort());
+        l.onReadThisClass(in.readUnsignedShort());
+        l.onReadSuperClass(in.readUnsignedShort());
         l.onReadFinished();
     }
 
+    /**
+     * Collect class file.
+     */
+    public ClassInfo collectFile(File f) {
+        if (f.isFile()) {
+            ClassInfo info = this.infoMap.get(f);
+            if (info == null) {
+                info = new ClassInfo();
+                readFile(f, info);
+                this.infoMap.put(f, info);
+            }
+            return info;
+        }
+        return null;
+    }
+
+    /**
+     * Collect class files in a directory.
+     */
     public void collect(File dir) {
+        if (!dir.isDirectory()) {
+            return;
+        }
         final ArrayList<File> files = new ArrayList<File>();
         listFiles(dir, files);
         for (File f : files) {
-            if (f.isFile()) {
-                final ClassNameCollector collector = new ClassNameCollector();
-                readFile(f, collector);
-                this.collectorMap.put(f, collector);
-            }
+            collectFile(f);
         }
     }
 
+    /**
+     * Collect class files in a path.
+     */
     public void collect(String path) {
         collect(new File(path));
     }
@@ -185,7 +209,7 @@ public class ClassFileReader {
      */
     public File[] usages(String className) {
         final HashSet<File> usages = new HashSet<File>();
-        for (Map.Entry<File, ClassNameCollector> entry : this.collectorMap.entrySet()) {
+        for (Map.Entry<File, ClassInfo> entry : this.infoMap.entrySet()) {
             if (entry.getValue().check(className)) {
                 usages.add(entry.getKey());
             }
@@ -199,15 +223,25 @@ public class ClassFileReader {
     public File[] usages(Collection<String> classNames) {
         final HashSet<File> usages = new HashSet<File>();
         for (String className : classNames) {
-            for (Map.Entry<File, ClassNameCollector> entry : this.collectorMap.entrySet()) {
-                final ClassNameCollector collector = entry.getValue();
+            for (Map.Entry<File, ClassInfo> entry : this.infoMap.entrySet()) {
+                final ClassInfo info = entry.getValue();
                 final File file = entry.getKey();
-                if (collector.check(className)) {
+                if (info.check(className)) {
                     this.logger.info(className + " used by " + file);
                     usages.add(file);
                 }
             }
         }
         return usages.toArray(new File[usages.size()]);
+    }
+
+    public Collection<String> subclasses(String className) {
+        final HashSet<String> subclasses = new HashSet<String>();
+        for (ClassInfo info : this.infoMap.values()) {
+            if (info.getSuperClassName().equals(className)) {
+                subclasses.add(info.getThisClassName());
+            }
+        }
+        return subclasses;
     }
 }

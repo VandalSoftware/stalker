@@ -6,6 +6,7 @@ package com.vandalsoftware.tools.gradle
 class StalkerExtension {
     Set<File> srcRoots
     Set<File> targetClassPaths
+    Set<File> srcClassPaths
     String revision
     OutputStream standardOutput
 
@@ -14,6 +15,7 @@ class StalkerExtension {
     StalkerExtension() {
         srcRoots = new LinkedHashSet<>()
         targetClassPaths = new LinkedHashSet<>()
+        srcClassPaths = new LinkedHashSet<>()
     }
 
     void srcRoot(String path) {
@@ -30,6 +32,14 @@ class StalkerExtension {
 
     void targetClassPath(File dir) {
         targetClassPaths.add(dir)
+    }
+
+    void srcClassPath(String path) {
+        srcClassPaths.add(new File(path))
+    }
+
+    void srcClassPath(File dir) {
+        srcClassPaths.add(dir)
     }
 
     void afterStalk(Closure c) {

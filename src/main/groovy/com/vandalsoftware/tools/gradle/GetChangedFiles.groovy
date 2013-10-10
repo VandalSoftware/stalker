@@ -12,5 +12,6 @@ class GetChangedFiles extends Exec {
         args("diff-tree")
         args("--no-commit-id")
         args("--name-only")
+        args("--relative")
     }
 }
