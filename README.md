@@ -98,9 +98,3 @@ Which produces some output:
 ## License
 
 Apache License, Version 2.0
-
-## TODO
-
-- Detect if a class is a superclass
-- Detect classes used by a class (reverse transitive dependency)
-- Granular method and field analysis
