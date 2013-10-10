@@ -23,6 +23,7 @@ class Usages extends DefaultTask {
             sourceReader.collect(dir);
         }
         classes.each() { String filePath ->
+            logger.debug "Examining " + filePath
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
                     String relFilePath = filePath.substring(srcRoot.path.length() + 1,
