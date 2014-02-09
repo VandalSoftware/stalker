@@ -3,15 +3,17 @@ apply plugin: 'maven'
 apply plugin: 'java'
 apply plugin: 'signing'
 
+sourceCompatibility = JavaVersion.VERSION_1_7
+
 group = "com.vandalsoftware.tools.gradle"
 
 ext.release = has("release")
-ext.sonatypeRepo = has("sonatypeRepo") ? sonatypeRepo : file("$buildDir/repo/releases")
-ext.sonatypeSnapshotRepo = has("sonatypeSnapshotRepo") ? sonatypeSnapshotRepo : file("$buildDir/repo/snapshots")
-ext.sonatypeUsername = has("sonatypeUsername") ? sonatypeUsername : ""
-ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : ""
+ext.sonatypeRepo = has("sonatypeRepo") ? sonatypeRepo : null
+ext.sonatypeSnapshotRepo = has("sonatypeSnapshotRepo") ? sonatypeSnapshotRepo : null
+ext.sonatypeUsername = has("sonatypeUsername") ? sonatypeUsername : null
+ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : null
 
-version = getVersion("0.2.1")
+version = getVersion("0.3.0")
 
 jar {
     baseName = "stalker"
@@ -50,6 +52,10 @@ signing {
 }
 
 uploadArchives {
+    onlyIf {
+        (project.ext.sonatypeRepo || project.ext.sonatypeSnapshotRepo) &&
+                project.ext.sonatypePassword && project.ext.sonatypeUsername
+    }
     repositories {
         mavenDeployer {
             configuration = configurations.archives
@@ -105,7 +111,6 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.tools.build:gradle:0.5.+'
     compile gradleApi()
     compile localGroovy()
 }
@@ -118,6 +123,6 @@ def getVersion(String baseVersion) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.8'
+    gradleVersion = '1.10'
 }
 

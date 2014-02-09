@@ -5,4 +5,5 @@ package com.vandalsoftware;
  */
 public interface Engine {
     void run();
+    boolean isRunning();
 }

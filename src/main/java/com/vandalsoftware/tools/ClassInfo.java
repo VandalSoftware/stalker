@@ -98,14 +98,7 @@ public class ClassInfo implements ClassFileReadListener {
     }
 
     public boolean check(String className) {
-        if (this.classNames != null) {
-            for (String name : this.classNames) {
-                if (name.equals(className)) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return this.classNames != null && this.classNames.contains(className);
     }
 
     /**

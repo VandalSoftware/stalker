@@ -1,14 +1,10 @@
 package com.vandalsoftware.tools;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,16 +20,14 @@ import java.util.Map;
  */
 public class ClassFileReader {
     private HashMap<File, ClassInfo> infoMap;
-    private Logger logger;
 
     public ClassFileReader() {
-        this.infoMap = new HashMap<File, ClassInfo>();
-        this.logger = LoggerFactory.getLogger(ClassFileReader.class);
+        this.infoMap = new HashMap<>();
     }
 
     public static void main(String[] args) {
         final BufferedReader buf = new BufferedReader(new InputStreamReader(System.in));
-        final ArrayList<String> input = new ArrayList<String>();
+        final ArrayList<String> input = new ArrayList<>();
         try {
             input.add(buf.readLine());
         } catch (IOException e) {
@@ -84,8 +78,6 @@ public class ClassFileReader {
         try {
             stream = new FileInputStream(f);
             readInputStream(stream, l);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -190,7 +182,7 @@ public class ClassFileReader {
         if (!dir.isDirectory()) {
             return;
         }
-        final ArrayList<File> files = new ArrayList<File>();
+        final ArrayList<File> files = new ArrayList<>();
         listFiles(dir, files);
         for (File f : files) {
             collectFile(f);
@@ -208,7 +200,7 @@ public class ClassFileReader {
      * Check for usages of a single class name.
      */
     public File[] usages(String className) {
-        final HashSet<File> usages = new HashSet<File>();
+        final HashSet<File> usages = new HashSet<>();
         for (Map.Entry<File, ClassInfo> entry : this.infoMap.entrySet()) {
             if (entry.getValue().check(className)) {
                 usages.add(entry.getKey());
@@ -221,13 +213,12 @@ public class ClassFileReader {
      * Check for usages of collection of class names.
      */
     public File[] usages(Collection<String> classNames) {
-        final HashSet<File> usages = new HashSet<File>();
+        final HashSet<File> usages = new HashSet<>();
         for (String className : classNames) {
             for (Map.Entry<File, ClassInfo> entry : this.infoMap.entrySet()) {
                 final ClassInfo info = entry.getValue();
                 final File file = entry.getKey();
                 if (info.check(className)) {
-                    this.logger.info(className + " used by " + file);
                     usages.add(file);
                 }
             }
@@ -236,7 +227,7 @@ public class ClassFileReader {
     }
 
     public Collection<String> subclasses(String className) {
-        final HashSet<String> subclasses = new HashSet<String>();
+        final HashSet<String> subclasses = new HashSet<>();
         for (ClassInfo info : this.infoMap.values()) {
             if (info.getSuperClassName().equals(className)) {
                 subclasses.add(info.getThisClassName());
