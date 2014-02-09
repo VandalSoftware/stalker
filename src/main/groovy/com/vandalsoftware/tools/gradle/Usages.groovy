@@ -23,7 +23,7 @@ class Usages extends DefaultTask {
             sourceReader.collect(dir);
         }
         classes.each() { String filePath ->
-            logger.debug "Examining " + filePath
+            logger.info "Examining " + filePath
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
                     String relFilePath = filePath.substring(srcRoot.path.length() + 1,
@@ -33,11 +33,11 @@ class Usages extends DefaultTask {
                         ClassInfo info = sourceReader.collectFile(f)
                         if (info != null) {
                             String cname = info.getThisClassName()
-                            logger.debug(cname + " is an affected class")
+                            logger.info cname + " is an affected class"
                             inputClassNames.add(cname);
                             def subclasses = sourceReader.subclasses(cname)
                             subclasses.each() {
-                                logger.debug(it + " is an affected subclass")
+                                logger.info it + " is an affected subclass"
                             }
                             inputClassNames.addAll(subclasses)
                         }
@@ -54,11 +54,15 @@ class Usages extends DefaultTask {
         File[] used = targetReader.usages(inputClassNames);
         classNames = new LinkedHashSet<>()
         used.each() { f ->
+            logger.info "Found usage in: " + f
             targetClassPaths.each() { File target ->
                 if (f.path.startsWith(target.path)) {
                     classNames.add(pathToClassName(target.path, f.path, ".class"))
                 }
             }
+        }
+        if (used.length == 0) {
+            logger.lifecycle "No usages found."
         }
     }
 
