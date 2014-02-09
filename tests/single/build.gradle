@@ -9,19 +9,25 @@ buildscript {
     }
 }
 
+apply plugin: 'groovy'
 apply plugin: 'java'
 apply plugin: 'stalker'
 
 stalker {
     srcRoot "src/main/java"
     srcClassPath "$buildDir/classes/main"
-    targetClassPath "$buildDir/classes/main"
+    targetClassPath "$buildDir/classes/test"
+}
+
+dependencies {
+    compile gradleApi()
+    compile localGroovy()
 }
 
 /**
  * ../../gradlew usages --info
  */
-task usages(type: Usages, dependsOn: assemble) {
+task usages(type: Usages, dependsOn: check) {
     ext.srcRoots = {
         [new File("src/main/java")] as Set
     }
@@ -29,10 +35,11 @@ task usages(type: Usages, dependsOn: assemble) {
         [new File("$buildDir/classes/main")] as Set
     }
     ext.targets = {
-        [new File("$buildDir/classes/main")] as Set
+        [new File("$buildDir/classes/test")] as Set
     }
     ext.input = {
-        ["src/main/java/com/vandalsoftware/HeatEngine.java"] as Set
+        ["src/main/java/com/vandalsoftware/Car.java",
+                "src/main/java/com/vandalsoftware/CombustionEngine.java"] as Set
     }
 }
 
