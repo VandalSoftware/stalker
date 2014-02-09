@@ -6,10 +6,10 @@ apply plugin: 'signing'
 group = "com.vandalsoftware.tools.gradle"
 
 ext.release = has("release")
-ext.sonatypeRepo = has("sonatypeRepo") ? sonatypeRepo : file("$buildDir/repo/releases")
-ext.sonatypeSnapshotRepo = has("sonatypeSnapshotRepo") ? sonatypeSnapshotRepo : file("$buildDir/repo/snapshots")
-ext.sonatypeUsername = has("sonatypeUsername") ? sonatypeUsername : ""
-ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : ""
+ext.sonatypeRepo = has("sonatypeRepo") ? sonatypeRepo : null
+ext.sonatypeSnapshotRepo = has("sonatypeSnapshotRepo") ? sonatypeSnapshotRepo : null
+ext.sonatypeUsername = has("sonatypeUsername") ? sonatypeUsername : null
+ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : null
 
 version = getVersion("0.3.0")
 
@@ -50,6 +50,10 @@ signing {
 }
 
 uploadArchives {
+    onlyIf {
+        (project.ext.sonatypeRepo || project.ext.sonatypeSnapshotRepo) &&
+                project.ext.sonatypePassword && project.ext.sonatypeUsername
+    }
     repositories {
         mavenDeployer {
             configuration = configurations.archives
