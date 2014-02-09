@@ -2,11 +2,10 @@ import com.vandalsoftware.tools.gradle.Usages
 
 buildscript {
     repositories {
-        mavenLocal()
-        mavenCentral()
+        maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
     }
     dependencies {
-        classpath "com.vandalsoftware.tools.gradle:stalker:0.2.0-SNAPSHOT"
+        classpath "com.vandalsoftware.tools.gradle:stalker:0.3.0-SNAPSHOT"
     }
 }
 
@@ -15,19 +14,22 @@ apply plugin: 'stalker'
 
 stalker {
     srcRoot "src/main/java"
-    srcClassPath "${buildDir}/classes/main"
-    targetClassPath "${buildDir}/classes/main"
+    srcClassPath "$buildDir/classes/main"
+    targetClassPath "$buildDir/classes/main"
 }
 
+/**
+ * ../../gradlew usages --info
+ */
 task usages(type: Usages, dependsOn: assemble) {
     ext.srcRoots = {
         [new File("src/main/java")] as Set
     }
     ext.classpaths = {
-        [new File("build/classes/main")] as Set
+        [new File("$buildDir/classes/main")] as Set
     }
     ext.targets = {
-        [new File("build/classes/main")] as Set
+        [new File("$buildDir/classes/main")] as Set
     }
     ext.input = {
         ["src/main/java/com/vandalsoftware/HeatEngine.java"] as Set
