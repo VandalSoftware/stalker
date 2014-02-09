@@ -27,8 +27,8 @@ It does this by examining bytecode and completing the closure on dependencies.
 
     stalker {
       srcRoot "src/main/java"
-      srcClassPath "build/classes/main"
-      targetClassPath "build/classes/test"
+      srcClassPath "$buildDir/classes/main"
+      targetClassPath "$buildDir/classes/test"
     }
 
 Currently, stalker obtains a list of changed files by relying on Git.
@@ -62,8 +62,8 @@ However, Stalker allows you to direct output anywhere you want.
 
     stalker {
       srcRoot "src/main/java"
-      srcClassPath "build/classes/main"
-      targetClassPath "build/classes/test"
+      srcClassPath "$buildDir/classes/main"
+      targetClassPath "$buildDir/classes/test"
       standardOutput = new FileOutputStream(new File("out.txt"))
     }
 
@@ -82,8 +82,8 @@ Taking it one step further, we can use the afterStalk closure to do whatever we 
 
     stalker {
       srcRoot "src/main/java"
-      srcClassPath "build/classes/main"
-      targetClassPath "build/classes/test"
+      srcClassPath "$buildDir/classes/main"
+      targetClassPath "$buildDir/classes/test"
       afterStalk { names ->
         names.each() {
             println "adb shell am instrument -w -e class " + it + " com.vandalsoftware.android.tests/android.test.InstrumentationTestRunner"
