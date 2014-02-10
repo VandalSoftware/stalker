@@ -7,8 +7,8 @@ import junit.framework.TestCase;
  */
 public class CombustionEngineTests extends TestCase {
     public void testEngineStart() {
-        final CombustionEngine combustionEngine = new CombustionEngine();
-        combustionEngine.run();
+        final CombustionEngine combustionEngine = new FourStrokeEngine();
+        combustionEngine.start();
         assertTrue(combustionEngine.isRunning());
     }
 }

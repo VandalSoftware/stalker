@@ -7,7 +7,7 @@ public class Car {
     private Engine engine;
 
     public Car() {
-        engine = new CombustionEngine();
+        engine = new FourStrokeEngine();
     }
 
     public static void main(String[] args) {
@@ -15,7 +15,7 @@ public class Car {
     }
 
     public void start() {
-        engine.run();
+        engine.start();
     }
 
     public boolean isRunning() {

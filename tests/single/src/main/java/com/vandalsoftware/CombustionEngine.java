@@ -3,24 +3,18 @@ package com.vandalsoftware;
 /**
  * @author Jonathan Le
  */
-public class CombustionEngine extends HeatEngine {
+public abstract class CombustionEngine implements Engine {
+    private boolean running;
+
+    protected abstract boolean run();
+
     @Override
-    protected void compress() {
-        System.out.println("Compressing.");
+    public void start() {
+        running = run();
     }
 
     @Override
-    protected void induce() {
-        System.out.println("Injecting fuel.");
-    }
-
-    @Override
-    protected void ignite() {
-        System.out.println("Boom!");
-    }
-
-    @Override
-    protected void output() {
-        System.out.println("Running!");
+    public boolean isRunning() {
+        return running;
     }
 }

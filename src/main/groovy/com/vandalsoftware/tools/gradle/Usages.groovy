@@ -9,21 +9,26 @@ import org.gradle.api.tasks.TaskAction
  * @author Jonathan Le
  */
 class Usages extends DefaultTask {
+    public static final char CLASS_SEPARATOR_CHAR = '.' as char
     Set<File> files
     Set<String> classNames
 
     @TaskAction
     void usages() {
-        def srcRoots = srcRoots()
-        def srcClassPaths = classpaths()
-        def classes = input()
+        Set srcRoots = srcRoots() as Set
+        Set srcClassPaths = classpaths() as Set
+        def inputs = input() as Set
+        // Keep track of unique classes being examined
+        Set inputClasses = new LinkedHashSet(inputs)
+        LinkedList classesToExamine = new LinkedList(inputs)
         Set inputClassNames = new LinkedHashSet()
         final ClassFileReader sourceReader = new ClassFileReader();
         srcClassPaths.each() { File dir ->
             sourceReader.collect(dir);
         }
-        classes.each() { String filePath ->
-            logger.info "Examining " + filePath
+        while (!classesToExamine.isEmpty()) {
+            String filePath = classesToExamine.remove()
+            logger.info "Examining $filePath"
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
                     String relFilePath = filePath.substring(srcRoot.path.length() + 1,
@@ -33,13 +38,17 @@ class Usages extends DefaultTask {
                         ClassInfo info = sourceReader.collectFile(f)
                         if (info != null) {
                             String cname = info.getThisClassName()
-                            logger.info cname + " is an affected class"
+                            logger.info "$cname is an affected class"
                             inputClassNames.add(cname);
                             def subclasses = sourceReader.subclasses(cname)
                             subclasses.each() {
-                                logger.info it + " is an affected subclass"
+                                logger.info "-> $it extends $cname"
+                                def path = classNameToPath(it, srcRoot.path, '.java')
+                                if (!inputClasses.contains(path)) {
+                                    inputClasses.add(path)
+                                    classesToExamine.add(path)
+                                }
                             }
-                            inputClassNames.addAll(subclasses)
                         }
                     }
                 }
@@ -54,16 +63,21 @@ class Usages extends DefaultTask {
         File[] used = targetReader.usages(inputClassNames);
         classNames = new LinkedHashSet<>()
         used.each() { f ->
-            logger.info "Found usage in: " + f
             targetClassPaths.each() { File target ->
                 if (f.path.startsWith(target.path)) {
+                    logger.info "Usage detected: $f"
                     classNames.add(pathToClassName(target.path, f.path, ".class"))
                 }
             }
         }
         if (used.length == 0) {
-            logger.lifecycle "No usages found."
+            logger.lifecycle "No usages detected."
         }
+    }
+
+    private static String classNameToPath(String className, String basePath, String extension) {
+        return new File(basePath, className.replace(CLASS_SEPARATOR_CHAR,
+                File.separatorChar) + extension);
     }
 
     boolean checkInputs() {
@@ -82,6 +96,6 @@ class Usages extends DefaultTask {
 
     private static String pathToClassName(String basePath, String path, String extension) {
         return path.substring(basePath.length() + 1,
-                path.indexOf(extension)).replace('/', '.')
+                path.indexOf(extension)).replace(File.separatorChar, CLASS_SEPARATOR_CHAR)
     }
 }
