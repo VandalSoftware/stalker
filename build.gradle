@@ -37,7 +37,7 @@ artifacts {
 }
 
 task publishLocal(type: Upload) {
-    configuration = configurations.archives
+    configuration = configurations.default
     repositories {
         mavenDeployer {
             repository(url: mavenLocal().getUrl())
@@ -77,12 +77,12 @@ uploadArchives {
                 name 'Stalker'
                 packaging 'jar'
                 description 'Class analyzing Gradle plugin'
-                url 'https://github.com/jonathanle/stalker'
+                url 'https://github.com/VandalSoftware/stalker'
 
                 scm {
-                    url 'scm:git@github.com:jonathanle/stalker.git'
-                    connection 'scm:git@github.com:jonathanle/stalker.git'
-                    developerConnection 'scm:git@github.com:jonathanle/stalker.git'
+                    url 'scm:git@github.com:VandalSoftware/stalker.git'
+                    connection 'scm:git@github.com:VandalSoftware/stalker.git'
+                    developerConnection 'scm:git@github.com:VandalSoftware/stalker.git'
                 }
 
                 licenses {
@@ -97,7 +97,7 @@ uploadArchives {
                     developer {
                         id 'jle'
                         name 'Jonathan Le'
-                        email 'jonathanle@gmail.com'
+                        email 'jle@vandal.io'
                     }
                 }
             }

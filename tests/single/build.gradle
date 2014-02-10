@@ -2,6 +2,7 @@ import com.vandalsoftware.tools.gradle.Usages
 
 buildscript {
     repositories {
+        mavenLocal()
         maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
     }
     dependencies {
