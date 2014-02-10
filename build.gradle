@@ -37,7 +37,7 @@ artifacts {
 }
 
 task publishLocal(type: Upload) {
-    configuration = configurations.archives
+    configuration = configurations.default
     repositories {
         mavenDeployer {
             repository(url: mavenLocal().getUrl())
