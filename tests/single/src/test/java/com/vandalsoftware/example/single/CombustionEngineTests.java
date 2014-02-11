@@ -1,7 +1,7 @@
-package com.vandalsoftware.test;
+package com.vandalsoftware.example.single;
 
-import com.vandalsoftware.test.CombustionEngine;
-import com.vandalsoftware.test.FourStrokeEngine;
+import com.vandalsoftware.example.single.CombustionEngine;
+import com.vandalsoftware.example.single.FourStrokeEngine;
 import junit.framework.TestCase;
 
 /**

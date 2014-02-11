@@ -1,4 +1,4 @@
-package com.vandalsoftware.test;
+package com.vandalsoftware.example.single;
 
 /**
  * @author Jonathan Le

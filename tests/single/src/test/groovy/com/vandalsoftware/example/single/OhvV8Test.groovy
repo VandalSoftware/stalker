@@ -1,6 +1,6 @@
-package com.vandalsoftware.test
+package com.vandalsoftware.example.single
 
-import com.vandalsoftware.test.OhvV8
+import com.vandalsoftware.example.single.OhvV8
 import org.junit.Test
 
 import static org.junit.Assert.assertTrue
