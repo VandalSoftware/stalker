@@ -1,7 +1,7 @@
 package com.vandalsoftware.tools.gradle
 
-import com.vandalsoftware.tools.ClassCollector
-import com.vandalsoftware.tools.ClassInfo
+import com.vandalsoftware.tools.classfile.ClassCollector
+import com.vandalsoftware.tools.classfile.ClassInfo
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 

@@ -1,4 +1,4 @@
-package com.vandalsoftware.tools;
+package com.vandalsoftware.tools.classfile;
 
 import java.util.Collection;
 
