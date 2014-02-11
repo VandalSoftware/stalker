@@ -55,6 +55,31 @@ public class ClassFileReader {
         }
     }
 
+    /**
+     * Convert a class specified as a field descriptor into a fully-qualified class name.
+     */
+    private static String getClassName(String fieldDescriptor) {
+        final int length = fieldDescriptor.length();
+        int i;
+        for (i = 0; i < length; i++) {
+            final char c = fieldDescriptor.charAt(i);
+            if (c != 'B' && c != 'C' && c != 'D' && c != 'F' && c != 'I' && c != 'J' && c != 'S' &&
+                    c != 'Z' && c != 'L' && c != '[') {
+                break;
+            }
+        }
+        if (i < length) {
+            int end = fieldDescriptor.length();
+            // Exclude semicolon from class descriptors
+            if (fieldDescriptor.indexOf(';') != -1) {
+                end -= 1;
+            }
+            return fieldDescriptor.substring(i, end).replace('/', '.');
+        } else {
+            return "";
+        }
+    }
+
     private void listFiles(File dir, Collection<File> c) {
         if (dir.exists()) {
             final File[] files = dir.listFiles(new FilenameFilter() {
@@ -73,32 +98,33 @@ public class ClassFileReader {
         }
     }
 
-    public void readFile(File f, ClassFileReadListener l) {
+    public ClassInfo readFile(File f) throws IOException {
         FileInputStream stream = null;
         try {
             stream = new FileInputStream(f);
-            readInputStream(stream, l);
-        } catch (IOException e) {
-            e.printStackTrace();
+            return readInputStream(stream);
         } finally {
             closeQuietly(stream);
         }
     }
 
-    public void readInputStream(InputStream stream, ClassFileReadListener l) throws IOException {
+    public ClassInfo readInputStream(InputStream stream) throws IOException {
         DataInputStream in = new DataInputStream(stream);
         // Skip magic, minor_version, and major_version
         final int magic = in.readInt();
+        if (magic != 0xCAFEBABE) {
+            throw new IOException("Not a class file");
+        }
         final int minorVersion = in.readUnsignedShort();
         final int majorVersion = in.readUnsignedShort();
         final int constantPoolCount = (in.readUnsignedShort() & 0xffff) - 1;
-        l.onReadClassFileInfo(magic, minorVersion, majorVersion, constantPoolCount);
+        final String[] strings = new String[constantPoolCount];
+        final int[] classes = new int[constantPoolCount];
         for (int i = 0; i < constantPoolCount; i++) {
             final int tag = in.readUnsignedByte();
             switch (tag) {
                 case 1: { // CONSTANT_Utf8
-                    final String s = in.readUTF();
-                    l.onReadUtf8(i, s);
+                    strings[i] = in.readUTF();
                     break;
                 }
                 case 3: // CONSTANT_Integer
@@ -118,7 +144,7 @@ public class ClassFileReader {
                 }
                 case 7: { // CONSTANT_Class
                     // name_index is one-based so offset by -1
-                    l.onReadClass(i, (in.readShort() & 0xffff) - 1);
+                    classes[i] = (in.readShort() & 0xffff) - 1;
                     break;
                 }
                 case 8: { // CONSTANT_String
@@ -153,10 +179,28 @@ public class ClassFileReader {
                 }
             }
         }
-        l.onReadAccessFlags(in.readUnsignedShort());
-        l.onReadThisClass(in.readUnsignedShort());
-        l.onReadSuperClass(in.readUnsignedShort());
-        l.onReadFinished();
+        final int accessFlags = in.readUnsignedShort();
+        final int thisClass = in.readUnsignedShort();
+        final String thisClassName = getClassName(strings[classes[thisClass - 1]]);
+        final int superClass = classes[in.readUnsignedShort() - 1];
+        final String superClassName;
+        if (superClass > 0) {
+            superClassName = getClassName(strings[superClass]);
+        } else {
+            superClassName = ClassInfo.JAVA_LANG_OBJECT;
+        }
+        final HashSet<String> classNames = new HashSet<>();
+        for (int index : classes) {
+            if (index != 0) {
+                final String classDescriptor = strings[index];
+                final String name = getClassName(classDescriptor);
+                if (!"".equals(name)) {
+                    classNames.add(name);
+                }
+            }
+        }
+        return new ClassInfo(minorVersion, majorVersion, strings, classNames, accessFlags,
+                thisClassName, superClassName);
     }
 
     /**
@@ -166,9 +210,12 @@ public class ClassFileReader {
         if (f.isFile()) {
             ClassInfo info = this.infoMap.get(f);
             if (info == null) {
-                info = new ClassInfo();
-                readFile(f, info);
-                this.infoMap.put(f, info);
+                try {
+                    info = readFile(f);
+                    this.infoMap.put(f, info);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
             return info;
         }
@@ -229,8 +276,8 @@ public class ClassFileReader {
     public Collection<String> subclasses(String className) {
         final HashSet<String> subclasses = new HashSet<>();
         for (ClassInfo info : this.infoMap.values()) {
-            if (info.getSuperClassName().equals(className)) {
-                subclasses.add(info.getThisClassName());
+            if (info.superClassName.equals(className)) {
+                subclasses.add(info.thisClassName);
             }
         }
         return subclasses;

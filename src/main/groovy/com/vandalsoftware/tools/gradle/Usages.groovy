@@ -37,7 +37,7 @@ class Usages extends DefaultTask {
                         File f = new File(cp, relFilePath)
                         ClassInfo info = sourceReader.collectFile(f)
                         if (info != null) {
-                            String cname = info.getThisClassName()
+                            String cname = info.thisClassName;
                             logger.info "$cname is an affected class"
                             inputClassNames.add(cname);
                             def subclasses = sourceReader.subclasses(cname)
