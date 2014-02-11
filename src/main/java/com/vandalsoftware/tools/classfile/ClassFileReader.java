@@ -1,5 +1,6 @@
 package com.vandalsoftware.tools.classfile;
 
+import java.io.Closeable;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,13 +37,23 @@ class ClassFileReader {
         }
     }
 
+    private static void closeQuietly(Closeable c) {
+        if (c != null) {
+            try {
+                c.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public ClassInfo readFile(File f) throws IOException {
         FileInputStream stream = null;
         try {
             stream = new FileInputStream(f);
             return readInputStream(stream);
         } finally {
-            ClassCollector.closeQuietly(stream);
+            closeQuietly(stream);
         }
     }
 

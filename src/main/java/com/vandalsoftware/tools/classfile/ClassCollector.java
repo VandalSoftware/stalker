@@ -1,11 +1,8 @@
 package com.vandalsoftware.tools.classfile;
 
-import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -28,36 +25,6 @@ public class ClassCollector {
 
     public ClassCollector() {
         this.infoMap = new HashMap<>();
-    }
-
-    public static void main(String[] args) {
-        final BufferedReader buf = new BufferedReader(new InputStreamReader(System.in));
-        final ArrayList<String> input = new ArrayList<>();
-        try {
-            input.add(buf.readLine());
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            closeQuietly(buf);
-        }
-
-        final ClassCollector reader = new ClassCollector();
-        reader.collect(args[0]);
-        // Check each file for usage of each input
-        final File[] files = reader.usages(input);
-        for (File f : files) {
-            System.out.println(f);
-        }
-    }
-
-    static void closeQuietly(Closeable c) {
-        if (c != null) {
-            try {
-                c.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     private void listFiles(File dir, Collection<File> c) {
