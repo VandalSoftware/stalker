@@ -39,8 +39,8 @@ task usages(type: Usages, dependsOn: check) {
         [new File("$buildDir/classes/test")] as Set
     }
     ext.input = {
-        ["src/main/java/com/vandalsoftware/Car.java",
-                "src/main/java/com/vandalsoftware/CombustionEngine.java"] as Set
+        ["src/main/java/com/vandalsoftware/example/single/Car.java",
+                "src/main/java/com/vandalsoftware/example/single/CombustionEngine.java"] as Set
     }
 }
 

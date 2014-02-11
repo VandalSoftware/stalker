@@ -1,5 +1,6 @@
-package com.vandalsoftware
+package com.vandalsoftware.example.single
 
+import com.vandalsoftware.example.single.Car
 import org.junit.Test
 
 import static org.junit.Assert.assertTrue
