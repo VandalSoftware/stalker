@@ -68,9 +68,12 @@ public class ClassInfo {
     }
 
     /**
-     * @return true if
+     * Checks if this class uses a class.
+     *
+     * @param className the fully-qualified class name to check
+     * @return true if this class references className
      */
-    public boolean check(String className) {
+    public boolean usesClass(String className) {
         return this.classNames != null && this.classNames.contains(className);
     }
 

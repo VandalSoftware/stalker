@@ -101,11 +101,7 @@ public class ClassCollector {
      */
     public File[] usages(String className) {
         final HashSet<File> usages = new HashSet<>();
-        for (Map.Entry<File, ClassInfo> entry : this.infoMap.entrySet()) {
-            if (entry.getValue().check(className)) {
-                usages.add(entry.getKey());
-            }
-        }
+        addUsages(usages, className);
         return usages.toArray(new File[usages.size()]);
     }
 
@@ -119,15 +115,20 @@ public class ClassCollector {
     public File[] usages(Collection<String> classNames) {
         final HashSet<File> usages = new HashSet<>();
         for (String className : classNames) {
-            for (Map.Entry<File, ClassInfo> entry : this.infoMap.entrySet()) {
-                final ClassInfo info = entry.getValue();
-                final File file = entry.getKey();
-                if (info.check(className)) {
-                    usages.add(file);
-                }
-            }
+            addUsages(usages, className);
         }
         return usages.toArray(new File[usages.size()]);
+    }
+
+    /**
+     * Adds class names that use the given class name to the Collection.
+     */
+    private void addUsages(Collection<File> usages, String className) {
+        for (Map.Entry<File, ClassInfo> entry : this.infoMap.entrySet()) {
+            if (entry.getValue().usesClass(className)) {
+                usages.add(entry.getKey());
+            }
+        }
     }
 
     /**
