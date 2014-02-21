@@ -52,7 +52,7 @@ public class ClassCollector {
     }
 
     /**
-     * Collect class file.
+     * Collects class file.
      */
     public ClassInfo collectFile(File f) {
         if (f.isFile()) {
@@ -71,7 +71,7 @@ public class ClassCollector {
     }
 
     /**
-     * Collect class files in a directory.
+     * Collects class files in a directory.
      */
     public void collect(File dir) {
         final Collection<File> files = listFiles(dir);
@@ -88,7 +88,7 @@ public class ClassCollector {
     }
 
     /**
-     * Check for usages of a single class name.
+     * Checks for usages of a single class name.
      *
      * @see #collect(java.io.File)
      * @see #collect(String)
@@ -105,7 +105,7 @@ public class ClassCollector {
     }
 
     /**
-     * Check for usages of collection of class names.
+     * Checks for usages of collection of class names.
      *
      * @see #collect(java.io.File)
      * @see #collect(String)
