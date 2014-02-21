@@ -3,10 +3,11 @@ package com.vandalsoftware.tools.classfile;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 
 /**
@@ -27,22 +28,27 @@ public class ClassCollector {
         this.infoMap = new HashMap<>();
     }
 
-    private void listFiles(File dir, Collection<File> c) {
-        if (dir.exists()) {
-            final File[] files = dir.listFiles(new FilenameFilter() {
-                @Override
-                public boolean accept(File file, String s) {
-                    final File f = new File(file, s);
-                    return f.isDirectory() || s.endsWith(".class");
-                }
-            });
-            for (File f : files) {
-                if (f.isDirectory()) {
-                    listFiles(f, c);
-                }
-                c.add(f);
-            }
+    static Collection<File> listFiles(File rootDir) {
+        if (!rootDir.isDirectory()) {
+            return Collections.emptyList();
         }
+        final LinkedList<File> dirs = new LinkedList<>();
+        dirs.add(rootDir);
+        final HashSet<File> fileSet = new HashSet<>();
+        final ClassFileFilter filter = new ClassFileFilter();
+        do {
+            final File dir = dirs.removeFirst();
+            if (dir.exists() && dir.isDirectory()) {
+                final File[] files = dir.listFiles(filter);
+                for (File f : files) {
+                    if (f.isDirectory()) {
+                        dirs.add(f);
+                    }
+                    fileSet.add(f);
+                }
+            }
+        } while (!dirs.isEmpty());
+        return fileSet;
     }
 
     /**
@@ -68,11 +74,7 @@ public class ClassCollector {
      * Collect class files in a directory.
      */
     public void collect(File dir) {
-        if (!dir.isDirectory()) {
-            return;
-        }
-        final ArrayList<File> files = new ArrayList<>();
-        listFiles(dir, files);
+        final Collection<File> files = listFiles(dir);
         for (File f : files) {
             collectFile(f);
         }
@@ -137,5 +139,13 @@ public class ClassCollector {
             }
         }
         return subclasses;
+    }
+
+    private static class ClassFileFilter implements FilenameFilter {
+        @Override
+        public boolean accept(File file, String s) {
+            final File f = new File(file, s);
+            return f.isDirectory() || s.endsWith(".class");
+        }
     }
 }
