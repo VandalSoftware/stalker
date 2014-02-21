@@ -28,7 +28,7 @@ class ClassFileReader {
         if (i < length) {
             int end = fieldDescriptor.length();
             // Exclude semicolon from class descriptors
-            if (fieldDescriptor.indexOf(';') != -1) {
+            if (fieldDescriptor.charAt(end - 1) == ';') {
                 end -= 1;
             }
             return fieldDescriptor.substring(i, end).replace('/', '.');
