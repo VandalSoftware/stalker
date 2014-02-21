@@ -41,8 +41,7 @@ class ClassFileReader {
         if (c != null) {
             try {
                 c.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (IOException ignored) {
             }
         }
     }

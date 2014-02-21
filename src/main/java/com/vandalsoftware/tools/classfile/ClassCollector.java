@@ -1,5 +1,8 @@
 package com.vandalsoftware.tools.classfile;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -23,9 +26,11 @@ import java.util.Map;
 public class ClassCollector {
     private final ClassFileReader classFileReader = new ClassFileReader();
     private HashMap<File, ClassInfo> infoMap;
+    private Logger logger;
 
     public ClassCollector() {
         this.infoMap = new HashMap<>();
+        this.logger = LoggerFactory.getLogger(getClass());
     }
 
     static Collection<File> listFiles(File rootDir) {
@@ -62,7 +67,7 @@ public class ClassCollector {
                     info = classFileReader.readFile(f);
                     this.infoMap.put(f, info);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    this.logger.error("Class read error", e);
                 }
             }
             return info;
