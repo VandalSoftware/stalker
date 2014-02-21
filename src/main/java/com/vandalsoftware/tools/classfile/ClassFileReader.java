@@ -9,6 +9,63 @@ import java.io.InputStream;
 import java.util.HashSet;
 
 class ClassFileReader {
+    /**
+     * CONSTANT_Utf8 constant pool tag.
+     */
+    public static final int CONSTANT_UTF_8 = 1;
+    /**
+     * CONSTANT_Integer constant pool tag.
+     */
+    public static final int CONSTANT_INTEGER = 3;
+    /**
+     * CONSTANT_Float constant pool tag.
+     */
+    public static final int CONSTANT_FLOAT = 4;
+    /**
+     * CONSTANT_Long constant pool tag.
+     */
+    public static final int CONSTANT_LONG = 5;
+    /**
+     * CONSTANT_Double constant pool tag.
+     */
+    public static final int CONSTANT_DOUBLE = 6;
+    /**
+     * CONSTANT_Class constant pool tag.
+     */
+    public static final int CONSTANT_CLASS = 7;
+    /**
+     * CONSTANT_String constant pool tag.
+     */
+    public static final int CONSTANT_STRING = 8;
+    /**
+     * CONSTANT_Fieldref constant pool tag.
+     */
+    public static final int CONSTANT_FIELDREF = 9;
+    /**
+     * CONSTANT_Methodref constant pool tag.
+     */
+    public static final int CONSTANT_METHODREF = 10;
+    /**
+     * CONSTANT_InterfaceMethodref constant pool tag.
+     */
+    public static final int CONSTANT_INTERFACE_METHODREF = 11;
+    /**
+     * CONSTANT_NameAndType constant pool tag.
+     */
+    public static final int CONSTANT_NAME_AND_TYPE = 12;
+    /**
+     * CONSTANT_MethodHandle constant pool tag.
+     */
+    public static final int CONSTANT_METHOD_HANDLE = 15;
+    /**
+     * CONSTANT_MethodType constant pool tag.
+     */
+    public static final int CONSTANT_METHOD_TYPE = 16;
+    /**
+     * CONSTANT_InvokeDynamic constant pool tag.
+     */
+    public static final int CONSTANT_INVOKE_DYNAMIC = 18;
+
     public ClassFileReader() {
     }
 
@@ -71,17 +128,17 @@ class ClassFileReader {
         for (int i = 0; i < constantPoolCount; i++) {
             final int tag = in.readUnsignedByte();
             switch (tag) {
-                case 1: { // CONSTANT_Utf8
+                case CONSTANT_UTF_8: {
                     strings[i] = in.readUTF();
                     break;
                 }
-                case 3: // CONSTANT_Integer
-                case 4: { // CONSTANT_Float
+                case CONSTANT_INTEGER:
+                case CONSTANT_FLOAT: {
                     in.readInt(); // bytes
                     break;
                 }
-                case 5: // CONSTANT_Long
-                case 6: { // CONSTANT_Double
+                case CONSTANT_LONG:
+                case CONSTANT_DOUBLE: {
                     in.readInt(); // high_bytes
                     in.readInt(); // low_bytes
                     // Increment the index. 8-byte constants take up two entries because the i+1
@@ -90,37 +147,37 @@ class ClassFileReader {
                     i++;
                     break;
                 }
-                case 7: { // CONSTANT_Class
+                case CONSTANT_CLASS: {
                     // name_index is one-based so offset by -1
                     classes[i] = (in.readShort() & 0xffff) - 1;
                     break;
                 }
-                case 8: { // CONSTANT_String
+                case CONSTANT_STRING: {
                     in.readUnsignedShort(); // string_index
                     break;
                 }
-                case 9: // CONSTANT_Fieldref
-                case 10: // CONSTANT_Methodref
-                case 11: { // CONSTANT_InterfaceMethodref
+                case CONSTANT_FIELDREF:
+                case CONSTANT_METHODREF:
+                case CONSTANT_INTERFACE_METHODREF: {
                     in.readUnsignedShort(); // class_index
                     in.readUnsignedShort(); // name_and_type_index
                     break;
                 }
-                case 12: { // CONSTANT_NameAndType
+                case CONSTANT_NAME_AND_TYPE: {
                     in.readShort(); // name_index
                     in.readShort(); // descriptor_index
                     break;
                 }
-                case 15: { // CONSTANT_MethodHandle
+                case CONSTANT_METHOD_HANDLE: {
                     in.readUnsignedByte(); // reference_kind
                     in.readUnsignedShort(); // reference_index
                     break;
                 }
-                case 16: { // CONSTANT_MethodType
+                case CONSTANT_METHOD_TYPE: {
                     in.readUnsignedShort(); // descriptor_index
                     break;
                 }
-                case 18: { // CONSTANT_InvokeDynamic
+                case CONSTANT_INVOKE_DYNAMIC: {
                     in.readUnsignedShort(); // bootstrap_method_attr_index
                     in.readUnsignedShort(); // name_and_type_index
                     break;
