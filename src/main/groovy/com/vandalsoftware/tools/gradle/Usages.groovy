@@ -1,7 +1,7 @@
 package com.vandalsoftware.tools.gradle
 
-import com.vandalsoftware.tools.ClassFileReader
-import com.vandalsoftware.tools.ClassInfo
+import com.vandalsoftware.tools.classfile.ClassCollector
+import com.vandalsoftware.tools.classfile.ClassInfo
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
@@ -22,7 +22,7 @@ class Usages extends DefaultTask {
         Set inputClasses = new LinkedHashSet(inputs)
         LinkedList classesToExamine = new LinkedList(inputs)
         Set inputClassNames = new LinkedHashSet()
-        final ClassFileReader sourceReader = new ClassFileReader();
+        final ClassCollector sourceReader = new ClassCollector();
         srcClassPaths.each() { File dir ->
             sourceReader.collect(dir);
         }
@@ -37,7 +37,7 @@ class Usages extends DefaultTask {
                         File f = new File(cp, relFilePath)
                         ClassInfo info = sourceReader.collectFile(f)
                         if (info != null) {
-                            String cname = info.getThisClassName()
+                            String cname = info.thisClassName;
                             logger.info "$cname is an affected class"
                             inputClassNames.add(cname);
                             def subclasses = sourceReader.subclasses(cname)
@@ -54,7 +54,7 @@ class Usages extends DefaultTask {
                 }
             }
         }
-        final ClassFileReader targetReader = new ClassFileReader();
+        final ClassCollector targetReader = new ClassCollector();
         def targetClassPaths = targets()
         targetClassPaths.each() { File dir ->
             targetReader.collect(dir);
