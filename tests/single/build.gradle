@@ -16,7 +16,9 @@ apply plugin: 'stalker'
 
 stalker {
     srcRoot "src/main/java"
+    srcRoot "src/test/java"
     srcClassPath "$buildDir/classes/main"
+    srcClassPath "$buildDir/classes/test"
     targetClassPath "$buildDir/classes/test"
 }
 
