@@ -1,2 +1,6 @@
 .gradle/
 build/
+
+# Android Studio specific files/directories
+local.properties
+.idea
