@@ -15,11 +15,11 @@ import java.util.Map;
 
 /**
  * This class collects class files. Once classes have been collected, the methods for analysis can
- * be used: {@link #subclasses(String)}, {@link #usages(String)}, etc.
+ * be used: {@link #findSubclasses(String)}, {@link #usages(String)}, etc.
  *
  * <ol>
  *     <li>collect</li>
- *     <li>usages, subclasses, etc.</li>
+ *     <li>findUsages, findSubclasses, etc.</li>
  * </ol>
  * @author Jonathan Le
  */
@@ -93,7 +93,7 @@ public class ClassCollector {
     }
 
     /**
-     * Checks for usages of a single class name.
+     * Checks for findUsages of a single class name.
      *
      * @see #collect(java.io.File)
      * @see #collect(String)
@@ -112,7 +112,7 @@ public class ClassCollector {
      * @see #collect(String)
      * @see #collectFile(java.io.File)
      */
-    public File[] usages(Collection<String> classNames) {
+    public File[] findUsages(Collection<String> classNames) {
         final HashSet<File> usages = new HashSet<>();
         for (String className : classNames) {
             addUsages(usages, className);
@@ -137,7 +137,7 @@ public class ClassCollector {
      * @see #collect(String)
      * @see #collectFile(java.io.File)
      */
-    public Collection<String> subclasses(String className) {
+    public Collection<String> findSubclasses(String className) {
         final HashSet<String> subclasses = new HashSet<>();
         for (ClassInfo info : this.infoMap.values()) {
             if (info.superClassName.equals(className)) {
@@ -145,6 +145,19 @@ public class ClassCollector {
             }
         }
         return subclasses;
+    }
+
+    /**
+     * Finds implementations of a class.
+     */
+    public Collection<String> findImplementations(String className) {
+        final HashSet<String> impls = new HashSet<>();
+        for (ClassInfo info : this.infoMap.values()) {
+            if (info.getInterfaces().contains(className)) {
+                impls.add(info.thisClassName);
+            }
+        }
+        return impls;
     }
 
     private static class ClassFileFilter implements FilenameFilter {

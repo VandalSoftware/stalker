@@ -21,4 +21,17 @@ class ClassFileReaderTests {
         assertTrue(classInfo.isInterface())
         assertFalse(classInfo.isSubclass())
     }
+
+    @Test
+    public void classInfoReadsAllInterfaces() {
+        File file = new File("$TEST_CLASSPATH/com/vandalsoftware/tests/model/Dog.class")
+        assertTrue(file.exists())
+        ClassFileReader reader = new ClassFileReader()
+        ClassInfo classInfo = reader.readFile(file)
+        assertNotNull(classInfo)
+        def interfaces = classInfo.getInterfaces()
+        assertEquals(2, interfaces.size())
+        assertTrue(interfaces.contains("com.vandalsoftware.tests.model.Animal"))
+        assertTrue(interfaces.contains("com.vandalsoftware.tests.model.FourLegged"))
+    }
 }

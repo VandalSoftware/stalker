@@ -40,14 +40,13 @@ class Usages extends DefaultTask {
                             String cname = info.thisClassName;
                             logger.info "$cname is an affected class"
                             inputClassNames.add(cname);
-                            def subclasses = sourceReader.subclasses(cname)
-                            subclasses.each() {
-                                logger.info "-> $it extends $cname"
-                                def path = classNameToPath(it, srcRoot.path, '.java')
-                                if (!inputClasses.contains(path)) {
-                                    inputClasses.add(path)
-                                    classesToExamine.add(path)
-                                }
+                            collectInputs(sourceReader.findSubclasses(cname),
+                                    srcRoot, inputClasses, classesToExamine,
+                                    { logger.info "-> $it extends $cname" })
+                            if (info.isInterface()) {
+                                collectInputs(sourceReader.findImplementations(cname),
+                                        srcRoot, inputClasses, classesToExamine,
+                                        { logger.info "-> $it implements $cname" })
                             }
                         }
                     }
@@ -60,7 +59,7 @@ class Usages extends DefaultTask {
             targetReader.collect(dir);
         }
         // Check each file for usage of each input
-        File[] used = targetReader.usages(inputClassNames);
+        File[] used = targetReader.findUsages(inputClassNames);
         classNames = new LinkedHashSet<>()
         used.each() { f ->
             targetClassPaths.each() { File target ->
@@ -72,6 +71,18 @@ class Usages extends DefaultTask {
         }
         if (used.length == 0) {
             logger.lifecycle "No usages detected."
+        }
+    }
+
+    private static Collection<String> collectInputs(Collection<String> classes, File srcRoot,
+                                                    inputClasses, classesToExamine, log) {
+        classes.each() { className ->
+            log(className)
+            def path = classNameToPath(className, srcRoot.path, '.java')
+            if (!inputClasses.contains(path)) {
+                inputClasses.add(path)
+                classesToExamine.add(path)
+            }
         }
     }
 

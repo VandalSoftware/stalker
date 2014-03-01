@@ -42,6 +42,7 @@ task usages(type: Usages, dependsOn: check) {
     }
     ext.input = {
         ["src/main/java/com/vandalsoftware/example/single/Car.java",
+                "src/main/java/com/vandalsoftware/example/single/Engine.java",
                 "src/main/java/com/vandalsoftware/example/single/CombustionEngine.java"] as Set
     }
 }

@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 class ClassFileReader {
@@ -185,14 +186,20 @@ class ClassFileReader {
             }
         }
         final int accessFlags = in.readUnsignedShort();
-        final int thisClass = in.readUnsignedShort();
-        final String thisClassName = getClassName(strings[classes[thisClass - 1]]);
+        final int thisClass = in.readUnsignedShort() - 1;
+        final String thisClassName = getClassName(strings[classes[thisClass]]);
         final int superClass = classes[in.readUnsignedShort() - 1];
         final String superClassName;
         if (superClass > 0) {
             superClassName = getClassName(strings[superClass]);
         } else {
             superClassName = ClassInfo.JAVA_LANG_OBJECT;
+        }
+        final int interfacesCount = in.readUnsignedShort();
+        final ArrayList<String> interfaceNames = new ArrayList<>();
+        for (int i = 0; i < interfacesCount; i++) {
+            final int interfaceIndex = in.readUnsignedShort() - 1;
+            interfaceNames.add(getClassName(strings[classes[interfaceIndex]]));
         }
         final HashSet<String> classNames = new HashSet<>();
         for (int index : classes) {
@@ -205,6 +212,6 @@ class ClassFileReader {
             }
         }
         return new ClassInfo(minorVersion, majorVersion, strings, classNames, accessFlags,
-                thisClassName, superClassName);
+                thisClassName, superClassName, interfaceNames);
     }
 }
