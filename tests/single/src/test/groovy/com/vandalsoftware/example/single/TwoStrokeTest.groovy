@@ -7,10 +7,10 @@ import static org.junit.Assert.assertTrue
 /**
  * @author Jonathan Le
  */
-class OhvV8Test {
+class TwoStrokeTest {
     @Test
-    public void testCarStart() {
-        OhvV8 engine = new OhvV8()
+    public void testEngineStarts() {
+        TwoStrokeEngine engine = new TwoStrokeEngine()
         engine.start()
         assertTrue engine.isRunning()
     }

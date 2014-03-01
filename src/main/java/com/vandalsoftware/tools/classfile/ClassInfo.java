@@ -46,9 +46,11 @@ public class ClassInfo {
     public final Collection<String> classNames;
     public final String thisClassName;
     public final String superClassName;
+    private final Collection<String> interfaceNames;
 
     ClassInfo(int minorVersion, int majorVersion, String[] strings, Collection<String> classNames,
-              int accessFlags, String thisClassName, String superClassName) {
+              int accessFlags, String thisClassName, String superClassName,
+              Collection<String> interfaceNames) {
         this.minorVersion = minorVersion;
         this.majorVersion = majorVersion;
         this.strings = strings;
@@ -56,6 +58,7 @@ public class ClassInfo {
         this.superClassName = superClassName;
         this.accessFlags = accessFlags;
         this.classNames = classNames;
+        this.interfaceNames = interfaceNames;
     }
 
     @Override
@@ -98,5 +101,9 @@ public class ClassInfo {
 
     public boolean isAbstract() {
         return (this.accessFlags & ACC_ABSTRACT) != 0;
+    }
+
+    public Collection<String> getInterfaces() {
+        return this.interfaceNames;
     }
 }
