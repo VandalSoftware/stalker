@@ -4,8 +4,6 @@ Stalker
 Stalker detects affected Java classes given a set of changed Java source files.
 It does this by examining bytecode and completing the closure on dependencies.
 
-- [Recent changes](https://github.com/VandalSoftware/stalker/wiki/Changelog)
-
 ## Usage
 
 **build.gradle**
