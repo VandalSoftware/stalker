@@ -20,7 +20,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.8.+'
+        classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 
@@ -53,11 +53,4 @@ android {
 dependencies {
     compile 'com.android.support:support-v4:19.0.1'
     compile 'com.android.support:appcompat-v7:19.0.1'
-}
-
-stalker {
-    srcRoot "src/main/java"
-    srcClassPath "$buildDir/classes/debug"
-    srcClassPath "$buildDir/classes/release"
-    targetClassPath "$buildDir/classes/test"
 }
