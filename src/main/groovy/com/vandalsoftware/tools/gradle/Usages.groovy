@@ -45,10 +45,16 @@ class Usages extends DefaultTask {
         while (!classesToExamine.isEmpty()) {
             String filePath = classesToExamine.remove()
             logger.info "Examining $filePath"
+            File fileToExamine = new File(filePath)
+            if (!fileToExamine.isFile()) {
+                continue
+            }
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
+                    def fileName = fileToExamine.name
+                    def fileExt = fileName.substring(fileName.lastIndexOf('.'))
                     String relFilePath = filePath.substring(srcRoot.path.length() + 1,
-                            filePath.indexOf(".java")) + ".class"
+                            filePath.lastIndexOf('.')) + ".class"
                     srcClassPaths.each() { File cp ->
                         File f = new File(cp, relFilePath)
                         ClassInfo info = sourceReader.collectFile(f)
@@ -57,11 +63,11 @@ class Usages extends DefaultTask {
                             logger.info "$cname is an affected class"
                             inputClassNames.add(cname);
                             collectInputs(sourceReader.findSubclasses(cname),
-                                    srcRoot, inputClasses, classesToExamine,
+                                    srcRoot, fileExt, inputClasses, classesToExamine,
                                     { logger.info "-> $it extends $cname" })
                             if (info.isInterface()) {
                                 collectInputs(sourceReader.findImplementations(cname),
-                                        srcRoot, inputClasses, classesToExamine,
+                                        srcRoot, fileExt, inputClasses, classesToExamine,
                                         { logger.info "-> $it implements $cname" })
                             }
                         }
@@ -90,11 +96,21 @@ class Usages extends DefaultTask {
         }
     }
 
-    private static Collection<String> collectInputs(Collection<String> classes, File srcRoot,
-                                                    inputClasses, classesToExamine, log) {
+    /**
+     * Collects class files to use as inputs and to examine.
+     *
+     * @param classes the class names to check
+     * @param srcRoot the source root
+     * @param inputClasses the collection to add class file paths. If the path already exists in
+     * this collection, it will be skipped.
+     * @param classesToExamine the paths of class files to examine in the next usages check
+     * @param log logging closure to execute
+     */
+    private static void collectInputs(Collection<String> classes, File srcRoot, fileExt,
+                                      inputClasses, classesToExamine, log) {
         classes.each() { className ->
             log(className)
-            def path = classNameToPath(className, srcRoot.path, '.java')
+            def path = classNameToPath(className, srcRoot.path, fileExt)
             if (!inputClasses.contains(path)) {
                 inputClasses.add(path)
                 classesToExamine.add(path)
@@ -102,7 +118,7 @@ class Usages extends DefaultTask {
         }
     }
 
-    private static String classNameToPath(String className, String basePath, String extension) {
+    private static String classNameToPath(String className, String basePath, extension) {
         return new File(basePath, className.replace(CLASS_SEPARATOR_CHAR,
                 File.separatorChar) + extension);
     }
