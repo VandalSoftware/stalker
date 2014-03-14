@@ -44,11 +44,11 @@ class Usages extends DefaultTask {
         }
         while (!classesToExamine.isEmpty()) {
             String filePath = classesToExamine.remove()
-            logger.info "Examining $filePath"
             File fileToExamine = new File(filePath)
             if (!fileToExamine.isFile()) {
                 continue
             }
+            logger.info "Examining $fileToExamine:"
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
                     def fileName = fileToExamine.name
@@ -60,15 +60,14 @@ class Usages extends DefaultTask {
                         ClassInfo info = sourceReader.collectFile(f)
                         if (info != null) {
                             String cname = info.thisClassName;
-                            logger.info "$cname is an affected class"
                             inputClassNames.add(cname);
                             collectInputs(sourceReader.findSubclasses(cname),
                                     srcRoot, fileExt, inputClasses, classesToExamine,
-                                    { logger.info "-> $it extends $cname" })
+                                    { logger.info "  $it extends $cname" })
                             if (info.isInterface()) {
                                 collectInputs(sourceReader.findImplementations(cname),
                                         srcRoot, fileExt, inputClasses, classesToExamine,
-                                        { logger.info "-> $it implements $cname" })
+                                        { logger.info "  $it implements $cname" })
                             }
                         }
                     }
@@ -80,19 +79,25 @@ class Usages extends DefaultTask {
         targetClassPaths.each() { File dir ->
             targetReader.collect(dir);
         }
+
+        classNames = new LinkedHashSet<>()
+
         // Check each file for usage of each input
         File[] used = targetReader.findUsages(inputClassNames);
-        classNames = new LinkedHashSet<>()
-        used.each() { f ->
-            targetClassPaths.each() { File target ->
-                if (f.path.startsWith(target.path)) {
-                    logger.info "Usage detected: $f"
-                    classNames.add(pathToClassName(target.path, f.path, ".class"))
+        if (used.size() > 0) {
+            logger.lifecycle "Affected classes:"
+            used.each() { f ->
+                targetClassPaths.each() { File target ->
+                    if (f.path.startsWith(target.path)) {
+                        def className = pathToClassName(target.path, f.path, ".class")
+                        logger.lifecycle "  $className"
+                        classNames.add(className)
+                    }
                 }
             }
         }
         if (used.length == 0) {
-            logger.lifecycle "No usages detected."
+            logger.lifecycle "No affected classes."
         }
     }
 
