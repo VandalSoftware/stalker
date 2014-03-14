@@ -13,7 +13,7 @@ It does this by examining bytecode and completing the closure on dependencies.
           mavenCentral()
       }
       dependencies {
-          classpath "com.vandalsoftware.tools.gradle:stalker:0.2.+"
+          classpath "com.vandalsoftware.tools.gradle:stalker:0.3.+"
       }
     }
 
