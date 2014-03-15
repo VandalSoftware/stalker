@@ -141,7 +141,8 @@ public class ClassCollector {
      */
     private void addUsages(Collection<File> usages, String className) {
         for (Map.Entry<File, ClassInfo> entry : this.infoMap.entrySet()) {
-            if (entry.getValue().usesClass(className)) {
+            final ClassInfo classInfo = entry.getValue();
+            if (classInfo.thisClassName.equals(className) || classInfo.usesClass(className)) {
                 usages.add(entry.getKey());
             }
         }
