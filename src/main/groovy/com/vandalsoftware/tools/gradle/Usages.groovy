@@ -123,7 +123,7 @@ class Usages extends DefaultTask {
         }
     }
 
-    private static String classNameToPath(String className, String basePath, extension) {
+    private static String classNameToPath(String className, String basePath, String extension) {
         return new File(basePath, className.replace(CLASS_SEPARATOR_CHAR,
                 File.separatorChar) + extension);
     }
