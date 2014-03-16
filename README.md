@@ -1,4 +1,4 @@
-Stalker
+Stalker [![Build Status](https://travis-ci.org/VandalSoftware/stalker.png?branch=master)](https://travis-ci.org/VandalSoftware/stalker)
 =======
 
 Stalker detects affected Java classes given a set of changed Java source files.
