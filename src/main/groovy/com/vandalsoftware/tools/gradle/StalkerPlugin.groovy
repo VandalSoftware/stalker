@@ -16,6 +16,7 @@
 
 package com.vandalsoftware.tools.gradle
 
+import org.eclipse.jgit.lib.Constants
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -30,12 +31,13 @@ class StalkerPlugin implements Plugin<Project> {
     void apply(Project project) {
         extension = project.extensions.create("stalker", StalkerExtension)
         Task changesTask = project.task([type: GetChangedFiles], "changes", {
-            def ref = extension.getRevision()
-            args "-r"
-            if (ref) {
-                args ref
-            } else {
-                args "HEAD"
+            ext.revision = {
+                def ref = extension.getRevision()
+                if (ref) {
+                    ref
+                } else {
+                    Constants.HEAD
+                }
             }
             standardOutput = new ByteArrayOutputStream()
             ext.output = {
