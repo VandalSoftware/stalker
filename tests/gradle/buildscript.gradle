@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package com.vandalsoftware.example.single.androidlib;
-
-import android.test.AndroidTestCase;
-
-public class DbDictionaryFactoryTest extends AndroidTestCase {
-
-    public void testNewDictionary() {
-        final Dictionary dictionary = new DbDictionaryFactory().newDictionary();
-        assertTrue(dictionary instanceof DbDictionaryImpl);
-    }
+repositories {
+    mavenLocal()
+    maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
+}
+dependencies {
+    classpath "com.vandalsoftware.tools.gradle:stalker:0.4.0-SNAPSHOT"
 }

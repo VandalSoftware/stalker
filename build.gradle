@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Vandal LLC
+ * Copyright (C) 2014 Vandal LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,21 @@
  * limitations under the License.
  */
 
+buildscript {
+    repositories {
+        mavenLocal()
+        maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
+    }
+    dependencies {
+        classpath "com.vandalsoftware.tools.gradle:stalker:0.4.0-SNAPSHOT"
+    }
+}
+
 apply plugin: "groovy"
 apply plugin: 'maven'
 apply plugin: 'java'
 apply plugin: 'signing'
+apply plugin: 'stalker'
 
 sourceCompatibility = JavaVersion.VERSION_1_7
 
@@ -29,7 +40,15 @@ ext.sonatypeSnapshotRepo = has("sonatypeSnapshotRepo") ? sonatypeSnapshotRepo : 
 ext.sonatypeUsername = has("sonatypeUsername") ? sonatypeUsername : null
 ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : null
 
-version = getVersion("0.3.0")
+version = getVersion("0.4.0")
+
+stalker {
+    srcRoot "src/main/java"
+    srcRoot "src/test/java"
+    srcClassPath "$buildDir/classes/main"
+    srcClassPath "$buildDir/classes/test"
+    targetClassPath "$buildDir/classes/test"
+}
 
 jar {
     baseName = "stalker"
