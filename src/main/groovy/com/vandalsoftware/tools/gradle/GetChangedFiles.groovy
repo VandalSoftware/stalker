@@ -19,11 +19,12 @@ package com.vandalsoftware.tools.gradle
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffFormatter
 import org.eclipse.jgit.diff.RawTextComparator
+import org.eclipse.jgit.errors.RepositoryNotFoundException
+import org.eclipse.jgit.errors.RevisionSyntaxException
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.lib.Repository
 import org.eclipse.jgit.revwalk.RevCommit
-import org.eclipse.jgit.revwalk.RevTree
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.storage.file.FileRepositoryBuilder
 import org.eclipse.jgit.treewalk.TreeWalk
@@ -52,45 +53,26 @@ class GetChangedFiles extends DefaultTask {
     }
 
     @TaskAction
-    void getChanges() {
+    void getModifiedFiles() {
         def file = new File(project.rootDir, '.git')
         Repository repository = new FileRepositoryBuilder()
                 .setGitDir(file)
                 .readEnvironment()
                 .findGitDir()
                 .build()
-
-        def revStr
-        if (hasProperty('revision')) {
-            revStr = revision() as String
-        } else {
-            revStr = Constants.HEAD
-        }
-        ObjectId commitId = repository.resolve(revStr)
-        if (commitId == null) {
-            throw new UnknownRepositoryException("Unknown repository '$file' or revision '$revStr'")
+        if (!repository.getObjectDatabase().exists()) {
+            throw new RepositoryNotFoundException("Unknown repository: " + file)
         }
         RevWalk revWalk = new RevWalk(repository)
-        RevCommit newCommit = revWalk.parseCommit(commitId)
-        RevTree revTree = newCommit.getTree()
-
-        RevCommit oldCommit = null
-        // Try the "from" revision string if one is given
-        if (hasProperty('fromRevision')) {
-            ObjectId fromCommitId = repository.resolve(fromRevision() as String)
-            oldCommit = revWalk.parseCommit(fromCommitId)
-        }
-        // Get the commit's direct parent
-        if (!oldCommit && newCommit.getParentCount() > 0) {
-            oldCommit = revWalk.parseCommit(newCommit.getParent(0).getId())
-        }
         try {
-            if (oldCommit) {
+            RevCommit commit = getCommit(repository, revWalk)
+            RevCommit fromCommit = getFromCommit(repository, revWalk, commit)
+            if (fromCommit) {
                 DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE)
                 diffFormatter.setRepository(repository)
                 diffFormatter.setDiffComparator(RawTextComparator.DEFAULT)
                 diffFormatter.setDetectRenames(true)
-                List<DiffEntry> diffs = diffFormatter.scan(oldCommit.getTree(), revTree)
+                List<DiffEntry> diffs = diffFormatter.scan(fromCommit.getTree(), commit.getTree())
                 for (DiffEntry diff : diffs) {
                     switch (diff.getChangeType()) {
                         case DiffEntry.ChangeType.ADD:
@@ -108,7 +90,7 @@ class GetChangedFiles extends DefaultTask {
                 }
             } else {
                 TreeWalk treeWalk = new TreeWalk(repository)
-                treeWalk.addTree(revTree)
+                treeWalk.addTree(commit.getTree())
                 treeWalk.setRecursive(true)
                 while (treeWalk.next()) {
                     files.add(new File(treeWalk.getPathString()))
@@ -118,5 +100,33 @@ class GetChangedFiles extends DefaultTask {
             revWalk.dispose()
             repository.close()
         }
+    }
+
+    private RevCommit getFromCommit(Repository repository, RevWalk revWalk, RevCommit commit) {
+        RevCommit oldCommit = null
+        // Try the "from" revision string if one is given
+        if (hasProperty('fromRevision')) {
+            ObjectId fromCommitId = repository.resolve(fromRevision() as String)
+            oldCommit = revWalk.parseCommit(fromCommitId)
+        }
+        // Get the commit's direct parent
+        if (!oldCommit && commit.getParentCount() > 0) {
+            oldCommit = revWalk.parseCommit(commit.getParent(0).getId())
+        }
+        return oldCommit
+    }
+
+    private RevCommit getCommit(Repository repository, RevWalk revWalk) {
+        ObjectId commitId
+        if (hasProperty('revision')) {
+            String revStr = revision() as String
+            commitId = repository.resolve(revStr)
+            if (commitId == null) {
+                throw new RevisionSyntaxException(revStr)
+            }
+        } else {
+            commitId = repository.resolve(Constants.HEAD)
+        }
+        return revWalk.parseCommit(commitId)
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.*
 
 /**
  * @author Jonathan Le
@@ -104,5 +104,33 @@ class GetChangedFilesTests {
                 project.task([type: GetChangedFiles], "changes") as GetChangedFiles
         changes.execute()
         assertNotEquals 'empty', 0, changes.files.size()
+    }
+
+    @Test
+    void throwsExceptionForInvalidGitRepo() {
+        Project project = ProjectBuilder.builder().build()
+        GetChangedFiles changes =
+                project.task([type: GetChangedFiles], "changes") as GetChangedFiles
+        try {
+            changes.execute()
+            fail("Repository should not exist at ${project.rootDir}")
+        } catch (Exception ignored) {
+        }
+    }
+
+    @Test
+    void throwsExceptionForInvalidRevStr() {
+        Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
+        String invalidRevision = "vandal was here";
+        GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
+            ext.revision = {
+                invalidRevision
+            }
+        }) as GetChangedFiles
+        try {
+            changes.execute()
+            fail("rev string should be invalid $invalidRevision")
+        } catch (Exception ignored) {
+        }
     }
 }
