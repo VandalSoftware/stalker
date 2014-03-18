@@ -2,12 +2,7 @@ language: java
 jdk: oraclejdk7
 
 env:
-  - GRADLE_VERSION="1.11"
-  - GRADLE_HOME=$PWD/gradle-$GRADLE_VERSION
-  - ANDROID_SDK_VERSION="22.6"
-  - ANDROID_HOME=$PWD/android-sdk-linux
-  - PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$GRADLE_HOME/bin:$PATH
-  - TERM=dumb
+  - GRADLE_VERSION="1.11" GRADLE_HOME=$PWD/gradle-$GRADLE_VERSION ANDROID_SDK_VERSION="22.6" ANDROID_HOME=$PWD/android-sdk-linux PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$GRADLE_HOME/bin:$PATH TERM=dumb
 
 before_install:
   # Install required libraries
