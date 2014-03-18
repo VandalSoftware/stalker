@@ -148,6 +148,7 @@ repositories {
 dependencies {
     compile gradleApi()
     compile localGroovy()
+    testCompile 'com.android.tools.build:gradle:0.9.+'
 }
 
 def getVersion(String baseVersion) {

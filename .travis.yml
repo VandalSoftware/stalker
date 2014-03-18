@@ -1,1 +1,19 @@
 language: java
+jdk: oraclejdk7
+
+env:
+  - GRADLE_VERSION="1.11" ANDROID_SDK_VERSION="22.6" TERM=dumb
+
+before_install:
+  # Install required libraries
+  - sudo apt-get update
+  - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
+  # Install Android SDK
+  - wget "http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz"
+  - tar -zxf "android-sdk_r$ANDROID_SDK_VERSION-linux.tgz"
+  - export ANDROID_HOME=$PWD/android-sdk-linux
+  - export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH
+  # Manually set sdk.dir variable
+  - echo "sdk.dir=$ANDROID_HOME" > local.properties
+  # Install extra libraries and SDKs
+  - echo y | android update sdk -a -t tools,platform-tools,extra-android-support,extra-android-m2repository,android-19,build-tools-19.0.1,extra-google-google_play_services,extra-google-m2repository --force --no-ui
