@@ -18,7 +18,7 @@ before_install:
   - wget "http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz"
   - tar -zxf "android-sdk_r$ANDROID_SDK_VERSION-linux.tgz"
   - export ANDROID_HOME=$PWD/android-sdk-linux
-  - export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+  - export PATH=$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools:$PATH
   # Manually set sdk.dir variable
   - echo "sdk.dir=$ANDROID_HOME" > local.properties
   # Install extra libraries and SDKs
