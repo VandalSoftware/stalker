@@ -10,7 +10,7 @@ import static org.junit.Assert.*
  */
 class UsagesTests {
     @Test
-    void testGroovyFilesCollected() {
+    void groovyFilesCollected() {
         Project project = ProjectBuilder.builder().build()
         Usages usages = project.task([type: Usages], "usages", {
             ext.srcRoots = {
@@ -39,7 +39,7 @@ class UsagesTests {
      * target class paths.
      */
     @Test
-    void testAffectedFileInSrcAndTargetClasspath() {
+    void affectedFileInSrcAndTargetClasspath() {
         Project project = ProjectBuilder.builder().build()
         Usages usages = project.task([type: Usages], "usages", {
             ext.srcRoots = {

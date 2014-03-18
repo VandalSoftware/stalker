@@ -33,7 +33,7 @@ class GetChangedFilesTests {
     public static final File WORKING_DIR = new File('.')
 
     @Test
-    void testGetChangedFileListNotEmpty() {
+    void returnsNonEmptyListForHEAD() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
         GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
             ext.revision = {
@@ -45,7 +45,7 @@ class GetChangedFilesTests {
     }
 
     @Test
-    void testGetChangedSourceFiles() {
+    void returnsSourceFilesForValidCommitId() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
         GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
             ext.revision = {
@@ -62,7 +62,7 @@ class GetChangedFilesTests {
     }
 
     @Test
-    void testGetChangesInRange() {
+    void returnsSourceFilesForCommitIdRange() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
         GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
             ext.fromRevision = {
@@ -83,7 +83,7 @@ class GetChangedFilesTests {
     }
 
     @Test
-    void testSameFromAndToRevision() {
+    void returnsEmptyListForSameToAndFromRevision() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
         GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
             ext.fromRevision = {
@@ -98,7 +98,7 @@ class GetChangedFilesTests {
     }
 
     @Test
-    void testNoExtensionPropertiesAssigned() {
+    void returnsNonEmptyListForUnassignedExtensionProperties() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
         GetChangedFiles changes =
                 project.task([type: GetChangedFiles], "changes") as GetChangedFiles

@@ -45,7 +45,7 @@ import org.gradle.api.tasks.TaskAction
  */
 class GetChangedFiles extends DefaultTask {
     Set<File> files
-    OutputStream standardOutput
+    OutputStream outputStream
 
     GetChangedFiles() {
         files = new HashSet<>()
@@ -53,7 +53,7 @@ class GetChangedFiles extends DefaultTask {
 
     @TaskAction
     void getChanges() {
-        def file = new File(project.rootDir, ".git")
+        def file = new File(project.rootDir, '.git')
         Repository repository = new FileRepositoryBuilder()
                 .setGitDir(file)
                 .readEnvironment()
@@ -61,19 +61,22 @@ class GetChangedFiles extends DefaultTask {
                 .build()
 
         def revStr
-        if (hasProperty("revision")) {
+        if (hasProperty('revision')) {
             revStr = revision() as String
         } else {
             revStr = Constants.HEAD
         }
         ObjectId commitId = repository.resolve(revStr)
+        if (commitId == null) {
+            throw new UnknownRepositoryException("Unknown repository '$file' or revision '$revStr'")
+        }
         RevWalk revWalk = new RevWalk(repository)
         RevCommit newCommit = revWalk.parseCommit(commitId)
         RevTree revTree = newCommit.getTree()
 
         RevCommit oldCommit = null
         // Try the "from" revision string if one is given
-        if (hasProperty("fromRevision")) {
+        if (hasProperty('fromRevision')) {
             ObjectId fromCommitId = repository.resolve(fromRevision() as String)
             oldCommit = revWalk.parseCommit(fromCommitId)
         }

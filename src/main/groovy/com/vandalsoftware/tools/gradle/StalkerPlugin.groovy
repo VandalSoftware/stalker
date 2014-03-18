@@ -39,9 +39,9 @@ class StalkerPlugin implements Plugin<Project> {
                     Constants.HEAD
                 }
             }
-            standardOutput = new ByteArrayOutputStream()
+            outputStream = new ByteArrayOutputStream()
             ext.output = {
-                String out = standardOutput.toString()
+                String out = outputStream.toString()
                 out.split("\n") as Set
             }
         })
