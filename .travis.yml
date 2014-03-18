@@ -8,12 +8,6 @@ before_install:
   # Install required libraries
   - sudo apt-get update
   - sudo apt-get install -qq --force-yes libgd2-xpm ia32-libs ia32-libs-multiarch
-  # Install compatible Gradle version
-  - wget "http://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip"
-  - unzip -qq "gradle-$GRADLE_VERSION-bin.zip"
-  - export GRADLE_HOME=$PWD/gradle-$GRADLE_VERSION
-  - export PATH=$GRADLE_HOME/bin:$PATH
-  - chmod +x gradlew
   # Install Android SDK
   - wget "http://dl.google.com/android/android-sdk_r$ANDROID_SDK_VERSION-linux.tgz"
   - tar -zxf "android-sdk_r$ANDROID_SDK_VERSION-linux.tgz"
