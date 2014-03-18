@@ -129,15 +129,49 @@ class Usages extends DefaultTask {
     }
 
     boolean checkInputs() {
-        return classpaths() && srcRoots() && input() && checkTargets()
+        StringBuilder msg = new StringBuilder()
+        def srcClasspaths = checkPathsExist(classpaths(), msg)
+        if (!srcClasspaths) {
+            msg.insert(0, "  No such classpaths exist:\n")
+        }
+        def targetClasspaths = checkPathsExist(targets(), msg)
+        if (!targetClasspaths) {
+            msg.insert(0, "  No such targets exist:\n")
+        }
+        def inputs = input()
+        if (!inputs) {
+            msg.insert(0, "  No inputs.")
+        }
+        def srcRoots = checkPathsExist(srcRoots(), msg)
+        if (!srcRoots) {
+            msg.insert(0, "  No such source roots exist:")
+        }
+        boolean dontSkip = srcClasspaths && srcRoots && inputs && targetClasspaths
+        if (!dontSkip) {
+            logger.lifecycle("Skipping ${name} because...\n$msg")
+        }
+        return dontSkip
     }
 
-    private boolean checkTargets() {
+    /**
+     * Checks and returns {@code true} if at least one path exists.
+     *
+     * @param paths the paths to check
+     * @param skipMsg the skip message to append the non-existent path
+     * @return true if at least one path exists
+     */
+    private static boolean checkPathsExist(paths, skipMsg) {
         boolean run = false
-        targets().each() { File dir ->
+        StringBuilder missing = new StringBuilder()
+        paths.each() { File dir ->
             if (dir.exists()) {
                 run = true
+            } else {
+                missing.append("  ").append(dir).append('\n')
             }
+        }
+        if (!run) {
+            skipMsg.append(missing)
         }
         return run
     }
