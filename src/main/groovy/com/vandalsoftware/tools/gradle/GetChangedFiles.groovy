@@ -67,6 +67,7 @@ class GetChangedFiles extends DefaultTask {
             RevCommit commit = getCommit(repository, revWalk)
             RevCommit fromCommit = getFromCommit(repository, revWalk, commit)
             if (fromCommit) {
+                logger.info("Diff ${commit.getId().name}..${fromCommit.getId().name}")
                 DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE)
                 diffFormatter.setRepository(repository)
                 diffFormatter.setDiffComparator(RawTextComparator.DEFAULT)
@@ -88,6 +89,7 @@ class GetChangedFiles extends DefaultTask {
                     }
                 }
             } else {
+                logger.info("Using entire tree of ${commit.getId().name}")
                 TreeWalk treeWalk = new TreeWalk(repository)
                 treeWalk.addTree(commit.getTree())
                 treeWalk.setRecursive(true)
@@ -98,6 +100,12 @@ class GetChangedFiles extends DefaultTask {
         } finally {
             revWalk.dispose()
             repository.close()
+        }
+        logger.info "Changed files:"
+        if (logger.infoEnabled) {
+            files.each() {
+                logger.info "  $it"
+            }
         }
     }
 
