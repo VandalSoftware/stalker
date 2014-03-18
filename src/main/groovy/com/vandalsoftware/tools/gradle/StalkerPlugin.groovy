@@ -30,7 +30,7 @@ class StalkerPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         extension = project.extensions.create("stalker", StalkerExtension)
-        Task changesTask = project.task([type: GetChangedFiles], "changes", {
+        GetChangedFiles changesTask = project.task([type: GetChangedFiles], "changes", {
             ext.revision = {
                 def ref = extension.getRevision()
                 if (ref) {
@@ -39,12 +39,7 @@ class StalkerPlugin implements Plugin<Project> {
                     Constants.HEAD
                 }
             }
-            outputStream = new ByteArrayOutputStream()
-            ext.output = {
-                String out = outputStream.toString()
-                out.split("\n") as Set
-            }
-        })
+        }) as GetChangedFiles
         Task stalkTask = project.task([type: Usages, dependsOn: changesTask], "stalk", {
             def stalkerExtensionDefaults = new StalkerExtension()
             project.configure(project) {
@@ -85,7 +80,7 @@ class StalkerPlugin implements Plugin<Project> {
                 }
             }
             ext.input = {
-                return changesTask.output()
+                return changesTask.getFiles()
             }
             ext.targets = {
                 if (extension.getTargetClassPaths().size() == 0) {

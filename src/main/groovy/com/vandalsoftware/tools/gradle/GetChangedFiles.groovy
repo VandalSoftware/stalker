@@ -46,7 +46,6 @@ import org.gradle.api.tasks.TaskAction
  */
 class GetChangedFiles extends DefaultTask {
     Set<File> files
-    OutputStream outputStream
 
     GetChangedFiles() {
         files = new HashSet<>()
