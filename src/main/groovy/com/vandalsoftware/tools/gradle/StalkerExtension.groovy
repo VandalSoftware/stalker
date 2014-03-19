@@ -26,6 +26,7 @@ class StalkerExtension {
     String revision
     OutputStream standardOutput
 
+    @Deprecated
     Closure afterStalk
 
     StalkerExtension() {

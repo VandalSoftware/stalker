@@ -93,6 +93,9 @@ class StalkerPlugin implements Plugin<Project> {
             group = "Analyze"
         }) << {
             if (extension.afterStalk) {
+                project.logger.lifecycle("afterStalk is deprecated and scheduled to be removed in" +
+                        " Stalker 1.0.0. Instead, you should use << for appending a Closure to" +
+                        " the task.")
                 extension.afterStalk(classNames)
             } else {
                 if (extension.standardOutput != null) {
