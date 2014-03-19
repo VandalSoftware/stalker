@@ -163,4 +163,14 @@ class StalkerPluginTests {
         assert 2 == stalkerExt.srcClassPaths.size()
         assert 2 == stalkerExt.targetClassPaths.size()
     }
+
+    @Test
+    public void stalkerExtensionDefaultsForJava() {
+        def project = ProjectBuilder.builder().build()
+        project.apply plugin: 'java'
+        project.apply plugin: 'stalker'
+        assert 2 == project.tasks.stalk.ext.srcRoots.call().size()
+        assert 2 == project.tasks.stalk.ext.classpaths.call().size()
+        assert 1 == project.tasks.stalk.ext.targets.call().size()
+    }
 }

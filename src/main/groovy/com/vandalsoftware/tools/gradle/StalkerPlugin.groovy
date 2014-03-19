@@ -65,6 +65,18 @@ class StalkerPlugin implements Plugin<Project> {
                             setClassPaths(project, null, android.buildTypes, stalkerExtensionDefaults)
                         }
                     }
+                } else if (it.plugins.hasPlugin('java')) {
+                    project.logger.info("Setting stalker extension defaults for java")
+                    setSrcRoot(project, project.sourceSets.main.java.getSrcDirs(),
+                        stalkerExtensionDefaults)
+                    setSrcRoot(project, project.sourceSets.test.java.getSrcDirs(),
+                        stalkerExtensionDefaults)
+                    setSrcClassPath(project, project.sourceSets.main.output.classesDir,
+                        stalkerExtensionDefaults)
+                    setSrcClassPath(project, project.sourceSets.test.output.classesDir,
+                        stalkerExtensionDefaults)
+                    setTargetClassPath(project, project.sourceSets.test.output.classesDir,
+                        stalkerExtensionDefaults)
                 }
             }
 
@@ -167,13 +179,21 @@ class StalkerPlugin implements Plugin<Project> {
     def setClassPaths(project, productFlavor, buildTypes, stalkerExt) {
         for (bt in buildTypes) {
             def srcClassPath = getSrcClassPath(project, productFlavor, bt)
-            project.logger.info("Adding stalker srcClassPath ${srcClassPath}")
-            stalkerExt.srcClassPath srcClassPath
+            setSrcClassPath(project, srcClassPath, stalkerExt)
 
             def targetClassPath = getTargetClassPath(project, productFlavor, bt)
-            project.logger.info("Adding stalker targetClassPath ${targetClassPath}")
-            stalkerExt.targetClassPath targetClassPath
+            setTargetClassPath(project, targetClassPath, stalkerExt)
         }
+    }
+
+    def setSrcClassPath(project, srcClassPath, stalkerExt) {
+        project.logger.info("Adding stalker srcClassPath ${srcClassPath}")
+        stalkerExt.srcClassPath srcClassPath
+    }
+
+    def setTargetClassPath(project, targetClassPath, stalkerExt) {
+        project.logger.info("Adding stalker targetClassPath ${targetClassPath}")
+        stalkerExt.targetClassPath targetClassPath
     }
 
     def getSrcClassPath(project, productFlavor, buildType) {
