@@ -37,7 +37,7 @@ class StalkerPluginTests {
     public void stalkerPluginAddsChangesTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'stalker'
-        assertTrue(project.tasks.changes instanceof GetChangedFiles)
+        assertTrue(project.tasks.changes instanceof Changes)
     }
 
     @Test

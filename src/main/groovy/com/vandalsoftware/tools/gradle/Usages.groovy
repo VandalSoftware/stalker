@@ -30,7 +30,7 @@ class Usages extends DefaultTask {
     Set<String> classNames
 
     @TaskAction
-    void usages() {
+    void findUsages() {
         Set srcRoots = srcRoots() as Set
         Set srcClassPaths = classpaths() as Set
         def inputs = input() as Set
@@ -130,27 +130,27 @@ class Usages extends DefaultTask {
 
     boolean checkInputs() {
         StringBuilder msg = new StringBuilder()
-        def srcClasspaths = checkPathsExist(classpaths(), msg)
-        if (!srcClasspaths) {
+        def hasClasspaths = checkPathsExist(classpaths(), msg)
+        if (!hasClasspaths) {
             msg.insert(0, "  No such classpaths exist:\n")
         }
-        def targetClasspaths = checkPathsExist(targets(), msg)
-        if (!targetClasspaths) {
+        def hasTargets = checkPathsExist(targets(), msg)
+        if (!hasTargets) {
             msg.insert(0, "  No such targets exist:\n")
         }
-        def inputs = input()
-        if (!inputs) {
+        def hasInput = input()
+        if (!hasInput) {
             msg.insert(0, "  No inputs.")
         }
-        def srcRoots = checkPathsExist(srcRoots(), msg)
-        if (!srcRoots) {
+        def hasSrcRoots = checkPathsExist(srcRoots(), msg)
+        if (!hasSrcRoots) {
             msg.insert(0, "  No such source roots exist:")
         }
-        boolean dontSkip = srcClasspaths && srcRoots && inputs && targetClasspaths
-        if (!dontSkip) {
+        boolean ok = hasClasspaths && hasSrcRoots && hasInput && hasTargets
+        if (!ok) {
             logger.lifecycle("Skipping ${name} because...\n$msg")
         }
-        return dontSkip
+        return ok
     }
 
     /**
@@ -161,19 +161,19 @@ class Usages extends DefaultTask {
      * @return true if at least one path exists
      */
     private static boolean checkPathsExist(paths, skipMsg) {
-        boolean run = false
+        boolean atLeastOneExists = false
         StringBuilder missing = new StringBuilder()
         paths.each() { File dir ->
             if (dir.exists()) {
-                run = true
+                atLeastOneExists = true
             } else {
                 missing.append("  ").append(dir).append('\n')
             }
         }
-        if (!run) {
+        if (!atLeastOneExists) {
             skipMsg.append(missing)
         }
-        return run
+        return atLeastOneExists
     }
 
     private static String pathToClassName(String basePath, String path, String extension) {

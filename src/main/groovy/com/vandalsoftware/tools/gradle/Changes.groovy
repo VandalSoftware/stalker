@@ -44,15 +44,15 @@ import org.gradle.api.tasks.TaskAction
  *
  * @author Jonathan Le
  */
-class GetChangedFiles extends DefaultTask {
+class Changes extends DefaultTask {
     Set<File> files
 
-    GetChangedFiles() {
+    Changes() {
         files = new HashSet<>()
     }
 
     @TaskAction
-    void getModifiedFiles() {
+    void getChangedFiles() {
         def file = new File(project.rootDir, '.git')
         Repository repository = new FileRepositoryBuilder()
                 .setGitDir(file)
@@ -101,10 +101,10 @@ class GetChangedFiles extends DefaultTask {
             revWalk.dispose()
             repository.close()
         }
-        logger.info "Changed files:"
         if (logger.infoEnabled) {
+            println "Changed files:"
             files.each() {
-                logger.info "  $it"
+                println "  $it"
             }
         }
     }

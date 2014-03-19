@@ -26,7 +26,7 @@ import static org.junit.Assert.*
 /**
  * @author Jonathan Le
  */
-class GetChangedFilesTests {
+class ChangesTests {
     /**
      * Default working directory for this project.
      */
@@ -35,11 +35,11 @@ class GetChangedFilesTests {
     @Test
     void returnsNonEmptyListForHEAD() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
+        Changes changes = project.task([type: Changes], "changes", {
             ext.revision = {
                 Constants.HEAD
             }
-        }) as GetChangedFiles
+        }) as Changes
         changes.execute()
         assertNotEquals 'changed files is not empty', 0, changes.files.size()
     }
@@ -47,11 +47,11 @@ class GetChangedFilesTests {
     @Test
     void returnsSourceFilesForValidCommitId() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
+        Changes changes = project.task([type: Changes], "changes", {
             ext.revision = {
                 '3ffc420595c4c81d951f1dd56038c55ae49edf9f'
             }
-        }) as GetChangedFiles
+        }) as Changes
         changes.execute()
         def expectedFiles = [
                 new File("src/test/groovy/com/vandalsoftware/tests/model/Cat.groovy"),
@@ -64,14 +64,14 @@ class GetChangedFilesTests {
     @Test
     void returnsSourceFilesForCommitIdRange() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
+        Changes changes = project.task([type: Changes], "changes", {
             ext.fromRevision = {
                 'd8b7a7a096dd419e07f561a198f1445d4d263dd6'
             }
             ext.revision = {
                 '3ffc420595c4c81d951f1dd56038c55ae49edf9f'
             }
-        }) as GetChangedFiles
+        }) as Changes
         changes.execute()
         def expectedFiles = [
                 new File("src/test/groovy/com/vandalsoftware/tests/model/Cat.groovy"),
@@ -85,14 +85,14 @@ class GetChangedFilesTests {
     @Test
     void returnsEmptyListForSameToAndFromRevision() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
+        Changes changes = project.task([type: Changes], "changes", {
             ext.fromRevision = {
                 Constants.HEAD
             }
             ext.revision = {
                 Constants.HEAD
             }
-        }) as GetChangedFiles
+        }) as Changes
         changes.execute()
         assertEquals 'empty', 0, changes.files.size()
     }
@@ -100,8 +100,7 @@ class GetChangedFilesTests {
     @Test
     void returnsNonEmptyListForUnassignedExtensionProperties() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        GetChangedFiles changes =
-                project.task([type: GetChangedFiles], "changes") as GetChangedFiles
+        Changes changes = project.task([type: Changes], "changes") as Changes
         changes.execute()
         assertNotEquals 'empty', 0, changes.files.size()
     }
@@ -109,8 +108,7 @@ class GetChangedFilesTests {
     @Test
     void throwsExceptionForInvalidGitRepo() {
         Project project = ProjectBuilder.builder().build()
-        GetChangedFiles changes =
-                project.task([type: GetChangedFiles], "changes") as GetChangedFiles
+        Changes changes = project.task([type: Changes], "changes") as Changes
         try {
             changes.execute()
             fail("Repository should not exist at ${project.rootDir}")
@@ -122,11 +120,11 @@ class GetChangedFilesTests {
     void throwsExceptionForInvalidRevStr() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
         String invalidRevision = "vandal was here";
-        GetChangedFiles changes = project.task([type: GetChangedFiles], "changes", {
+        Changes changes = project.task([type: Changes], "changes", {
             ext.revision = {
                 invalidRevision
             }
-        }) as GetChangedFiles
+        }) as Changes
         try {
             changes.execute()
             fail("rev string should be invalid $invalidRevision")
