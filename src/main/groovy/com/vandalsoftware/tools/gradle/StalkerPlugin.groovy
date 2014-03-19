@@ -92,28 +92,27 @@ class StalkerPlugin implements Plugin<Project> {
             description = "Analyze class usage"
             group = "Analyze"
         }) << {
+            if (extension.standardOutput != null) {
+                PrintStream out = new PrintStream(extension.standardOutput, true)
+                classNames.each() {
+                    out.println(it)
+                }
+                out.close()
+            } else {
+                if (classNames.size() > 0) {
+                    project.logger.lifecycle "Affected classes:"
+                    classNames.each() { className ->
+                        project.logger.lifecycle "  $className"
+                    }
+                } else {
+                    project.logger.lifecycle "No affected classes."
+                }
+            }
             if (extension.afterStalk) {
                 project.logger.lifecycle("afterStalk is deprecated and scheduled to be removed in" +
                         " Stalker 1.0.0. Instead, you should use << for appending a Closure to" +
                         " the task.")
                 extension.afterStalk(classNames)
-            } else {
-                if (extension.standardOutput != null) {
-                    PrintStream out = new PrintStream(extension.standardOutput, true)
-                    classNames.each() {
-                        out.println(it)
-                    }
-                    out.close()
-                } else {
-                    if (classNames.size() > 0) {
-                        project.logger.lifecycle "Affected classes:"
-                        classNames.each() { className ->
-                            project.logger.lifecycle "  $className"
-                        }
-                    } else {
-                        project.logger.lifecycle "No affected classes."
-                    }
-                }
             }
         }
         stalkTask.onlyIf {
