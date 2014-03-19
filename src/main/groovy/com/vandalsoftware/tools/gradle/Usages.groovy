@@ -42,15 +42,16 @@ class Usages extends DefaultTask {
         srcClassPaths.each() { File dir ->
             sourceReader.collect(dir)
         }
+        def examined = [] as HashSet
         while (!classesToExamine.isEmpty()) {
             String filePath = classesToExamine.remove()
             File fileToExamine = new File(filePath)
             if (!fileToExamine.isFile()) {
                 continue
             }
-            logger.info "Examining $fileToExamine:"
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
+                    logger.info "Examining $fileToExamine"
                     def fileName = fileToExamine.name
                     def fileExt = fileName.substring(fileName.lastIndexOf('.'))
                     String relFilePath = filePath.substring(srcRoot.path.length() + 1,
@@ -71,7 +72,20 @@ class Usages extends DefaultTask {
                             }
                         }
                     }
+                    examined.add(filePath)
                 }
+            }
+        }
+        def skipped = []
+        inputClasses.each() {
+            if (!examined.contains(it)) {
+                skipped.add(it)
+            }
+        }
+        if (skipped.size() > 0) {
+            logger.info "Not found in any source root:"
+            skipped.each {
+                logger.info "  $it"
             }
         }
         final ClassCollector targetReader = new ClassCollector()
