@@ -38,9 +38,9 @@ class Usages extends DefaultTask {
         Set inputClasses = new LinkedHashSet(inputs)
         LinkedList classesToExamine = new LinkedList(inputs)
         Set inputClassNames = new LinkedHashSet()
-        final ClassCollector sourceReader = new ClassCollector();
+        final ClassCollector sourceReader = new ClassCollector()
         srcClassPaths.each() { File dir ->
-            sourceReader.collect(dir);
+            sourceReader.collect(dir)
         }
         while (!classesToExamine.isEmpty()) {
             String filePath = classesToExamine.remove()
@@ -59,8 +59,8 @@ class Usages extends DefaultTask {
                         File f = new File(cp, relFilePath)
                         ClassInfo info = sourceReader.collectFile(f)
                         if (info != null) {
-                            String cname = info.thisClassName;
-                            inputClassNames.add(cname);
+                            String cname = info.thisClassName
+                            inputClassNames.add(cname)
                             collectInputs(sourceReader.findSubclasses(cname),
                                     srcRoot, fileExt, inputClasses, classesToExamine,
                                     { logger.info "  $it extends $cname" })
@@ -74,30 +74,23 @@ class Usages extends DefaultTask {
                 }
             }
         }
-        final ClassCollector targetReader = new ClassCollector();
+        final ClassCollector targetReader = new ClassCollector()
         def targetClassPaths = targets()
         targetClassPaths.each() { File dir ->
-            targetReader.collect(dir);
+            targetReader.collect(dir)
         }
 
         classNames = new LinkedHashSet<>()
 
         // Check each file for usage of each input
-        File[] used = targetReader.findUsages(inputClassNames);
-        if (used.size() > 0) {
-            logger.lifecycle "Affected classes:"
-            used.each() { f ->
-                targetClassPaths.each() { File target ->
-                    if (f.path.startsWith(target.path)) {
-                        def className = pathToClassName(target.path, f.path, ".class")
-                        logger.lifecycle "  $className"
-                        classNames.add(className)
-                    }
+        File[] used = targetReader.findUsages(inputClassNames)
+        used.each() { f ->
+            targetClassPaths.each() { File target ->
+                if (f.path.startsWith(target.path)) {
+                    def className = pathToClassName(target.path, f.path, ".class")
+                    classNames.add(className)
                 }
             }
-        }
-        if (used.length == 0) {
-            logger.lifecycle "No affected classes."
         }
     }
 
@@ -125,7 +118,7 @@ class Usages extends DefaultTask {
 
     private static String classNameToPath(String className, String basePath, String extension) {
         return new File(basePath, className.replace(CLASS_SEPARATOR_CHAR,
-                File.separatorChar) + extension);
+                File.separatorChar) + extension)
     }
 
     boolean checkInputs() {

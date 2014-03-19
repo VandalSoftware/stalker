@@ -105,8 +105,13 @@ class StalkerPlugin implements Plugin<Project> {
                     }
                     out.close()
                 } else {
-                    classNames.each() {
-                        println(it);
+                    if (classNames.size() > 0) {
+                        project.logger.lifecycle "Affected classes:"
+                        classNames.each() { className ->
+                            project.logger.lifecycle "  $className"
+                        }
+                    } else {
+                        project.logger.lifecycle "No affected classes."
                     }
                 }
             }
