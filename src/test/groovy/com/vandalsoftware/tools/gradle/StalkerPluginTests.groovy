@@ -52,14 +52,14 @@ class StalkerPluginTests {
     @Test
     public void setSrcRoot() {
         def project = ProjectBuilder.builder().build()
-        testSetSrcRoot(project, ['src/main/java'])
-        testSetSrcRoot(project, ['src/main/java', 'src/debug/java'])
+        testSetSrcRoot(['src/main/java'])
+        testSetSrcRoot(['src/main/java', 'src/debug/java'])
     }
 
-    private void testSetSrcRoot(project, srcDirs) {
+    private void testSetSrcRoot(srcDirs) {
         def stalkerExt = new StalkerExtension()
         def plugin = new StalkerPlugin()
-        plugin.setSrcRoot(project, srcDirs, stalkerExt)
+        plugin.setSrcRoot(srcDirs, stalkerExt)
         assert srcDirs.size() == stalkerExt.srcRoots.size()
         def i = 0
         for (f in stalkerExt.srcRoots) {
