@@ -13,7 +13,7 @@ It does this by examining bytecode and completing the closure on dependencies.
           mavenCentral()
       }
       dependencies {
-          classpath "com.vandalsoftware.tools.gradle:stalker:0.3.+"
+          classpath "com.vandalsoftware.tools.gradle:stalker:0.4.+"
       }
     }
 
@@ -22,6 +22,45 @@ It does this by examining bytecode and completing the closure on dependencies.
 **build.gradle**
 
     apply plugin: 'stalker'
+
+stalker uses a project's source files and classpaths for detecting changes and provides a default configuration for these.
+
+For java projects, the default configuration looks like:
+
+    stalker {
+      srcRoot "src/main/java"
+      srcRoot "src/test/java"
+      srcClassPath "$buildDir/classes/main"
+      srcClassPath "$buildDir/classes/test"
+      targetClassPath "$buildDir/classes/test"
+    }
+
+
+For android projects, the default configuration looks like:
+
+    stalker {
+      srcRoot "src/main/java"
+      srcRoot "src/androidTest/java"
+      srcClassPath "$buildDir/classes/debug"
+      srcClassPath "$buildDir/classes/release"
+      targetClassPath "$buildDir/classes/test/debug"
+      targetClassPath "$buildDir/classes/test/release"
+    }
+
+For android projects that define productFlavors, the default configuration looks like:
+
+    stalker {
+      srcRoot "src/main/java"
+      srcRoot "src/androidTest/java"
+      srcRoot "src/flavor1/java"
+      srcClassPath "$buildDir/classes/flavor1/debug"
+      srcClassPath "$buildDir/classes/flavor1/release"
+      targetClassPath "$buildDir/classes/test/flavor1/debug"
+      targetClassPath "$buildDir/classes/test/flavor1/release"
+    }
+
+
+If you need to provide your own source files and classpaths, you may do so using the stalker extension.
 
     stalker {
       srcRoot "src/main/java"
@@ -59,9 +98,6 @@ However, Stalker allows you to direct output anywhere you want.
 **build.gradle**
 
     stalker {
-      srcRoot "src/main/java"
-      srcClassPath "$buildDir/classes/main"
-      targetClassPath "$buildDir/classes/test"
       standardOutput = new FileOutputStream(new File("out.txt"))
     }
 
