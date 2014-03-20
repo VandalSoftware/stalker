@@ -26,11 +26,13 @@ import org.gradle.api.tasks.TaskAction
  */
 class Inspect extends DefaultTask {
     public static final char CLASS_SEPARATOR_CHAR = '.' as char
-    Set<File> files
-    Set<String> classNames
+    /**
+     * Names of affected classes.
+     */
+    Set<String> affectedClasses
 
     @TaskAction
-    void findUsages() {
+    void inspect() {
         Set srcRoots = srcRoots() as Set
         Set srcClassPaths = classpaths() as Set
         def inputs = input() as Set
@@ -94,7 +96,7 @@ class Inspect extends DefaultTask {
             targetReader.collect(dir)
         }
 
-        classNames = new LinkedHashSet<>()
+        affectedClasses = new LinkedHashSet<>()
 
         // Check each file for usage of each input
         File[] used = targetReader.findUsages(inputClassNames)
@@ -102,7 +104,7 @@ class Inspect extends DefaultTask {
             targetClassPaths.each() { File target ->
                 if (f.path.startsWith(target.path)) {
                     def className = pathToClassName(target.path, f.path, ".class")
-                    classNames.add(className)
+                    affectedClasses.add(className)
                 }
             }
         }

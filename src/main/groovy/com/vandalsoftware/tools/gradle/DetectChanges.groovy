@@ -45,14 +45,14 @@ import org.gradle.api.tasks.TaskAction
  * @author Jonathan Le
  */
 class DetectChanges extends DefaultTask {
-    Set<File> files
+    Set<File> changedFiles
 
     DetectChanges() {
-        files = new HashSet<>()
+        changedFiles = new HashSet<>()
     }
 
     @TaskAction
-    void getChangedFiles() {
+    void detect() {
         def file = new File(project.rootDir, '.git')
         Repository repository = new FileRepositoryBuilder()
                 .setGitDir(file)
@@ -78,11 +78,11 @@ class DetectChanges extends DefaultTask {
                         case DiffEntry.ChangeType.ADD:
                         case DiffEntry.ChangeType.MODIFY:
                         case DiffEntry.ChangeType.RENAME:
-                            files.add(new File(diff.getNewPath()))
+                            changedFiles.add(new File(diff.getNewPath()))
                             break
                         case DiffEntry.ChangeType.COPY:
-                            files.add(new File(diff.getOldPath()))
-                            files.add(new File(diff.getNewPath()))
+                            changedFiles.add(new File(diff.getOldPath()))
+                            changedFiles.add(new File(diff.getNewPath()))
                             break
                         default:
                             break
@@ -94,7 +94,7 @@ class DetectChanges extends DefaultTask {
                 treeWalk.addTree(commit.getTree())
                 treeWalk.setRecursive(true)
                 while (treeWalk.next()) {
-                    files.add(new File(treeWalk.getPathString()))
+                    changedFiles.add(new File(treeWalk.getPathString()))
                 }
             }
         } finally {
@@ -103,7 +103,7 @@ class DetectChanges extends DefaultTask {
         }
         if (logger.infoEnabled) {
             println "Changed files:"
-            files.each() {
+            changedFiles.each() {
                 println "  $it"
             }
         }

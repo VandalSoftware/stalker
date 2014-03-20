@@ -30,7 +30,7 @@ class StalkerPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         extension = project.extensions.create("stalker", StalkerExtension)
-        Changes changesTask = project.task([type: Changes], "changes", {
+        DetectChanges changesTask = project.task([type: DetectChanges], "changes", {
             ext.revision = {
                 def ref = extension.getRevision()
                 if (ref) {
@@ -39,8 +39,8 @@ class StalkerPlugin implements Plugin<Project> {
                     Constants.HEAD
                 }
             }
-        }) as Changes
-        Task stalkTask = project.task([type: Usages, dependsOn: changesTask], "stalk", {
+        }) as DetectChanges
+        Task stalkTask = project.task([type: Inspect, dependsOn: changesTask], "stalk", {
             def stalkerExtensionDefaults = new StalkerExtension()
             project.configure(project) {
                 if (it.extensions.findByName('android') &&
@@ -80,7 +80,7 @@ class StalkerPlugin implements Plugin<Project> {
                 }
             }
             ext.input = {
-                return changesTask.getFiles()
+                return changesTask.getChangedFiles()
             }
             ext.targets = {
                 if (extension.getTargetClassPaths().size() == 0) {
@@ -94,14 +94,14 @@ class StalkerPlugin implements Plugin<Project> {
         }) << {
             if (extension.standardOutput != null) {
                 PrintStream out = new PrintStream(extension.standardOutput, true)
-                classNames.each() {
+                affectedClasses.each() {
                     out.println(it)
                 }
                 out.close()
             } else {
-                if (classNames.size() > 0) {
+                if (affectedClasses.size() > 0) {
                     project.logger.lifecycle "Affected classes:"
-                    classNames.each() { className ->
+                    affectedClasses.each() { className ->
                         project.logger.lifecycle "  $className"
                     }
                 } else {
@@ -112,7 +112,7 @@ class StalkerPlugin implements Plugin<Project> {
                 project.logger.lifecycle("afterStalk is deprecated and scheduled to be removed in" +
                         " Stalker 1.0.0. Instead, you should use << for appending a Closure to" +
                         " the task.")
-                extension.afterStalk(classNames)
+                extension.afterStalk(affectedClasses)
             }
         }
         stalkTask.onlyIf {

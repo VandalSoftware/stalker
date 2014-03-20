@@ -109,7 +109,7 @@ public class ClassCollector {
     }
 
     /**
-     * Checks for findUsages of a single class name.
+     * Checks for usages of a single class name.
      *
      * @see #collect(java.io.File)
      * @see #collect(String)

@@ -35,43 +35,43 @@ class ChangesTests {
     @Test
     void returnsNonEmptyListForHEAD() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        Changes changes = project.task([type: Changes], "changes", {
+        DetectChanges changes = project.task([type: DetectChanges], "changes", {
             ext.revision = {
                 Constants.HEAD
             }
-        }) as Changes
+        }) as DetectChanges
         changes.execute()
-        assertNotEquals 'changed files is not empty', 0, changes.files.size()
+        assertNotEquals 'changed files is not empty', 0, changes.changedFiles.size()
     }
 
     @Test
     void returnsSourceFilesForValidCommitId() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        Changes changes = project.task([type: Changes], "changes", {
+        DetectChanges changes = project.task([type: DetectChanges], "changes", {
             ext.revision = {
                 '3ffc420595c4c81d951f1dd56038c55ae49edf9f'
             }
-        }) as Changes
+        }) as DetectChanges
         changes.execute()
         def expectedFiles = [
                 new File("src/test/groovy/com/vandalsoftware/tests/model/Cat.groovy"),
                 new File("src/test/groovy/com/vandalsoftware/tools/gradle/UsagesTests.groovy"),
                 new File("src/main/java/com/vandalsoftware/tools/classfile/ClassCollector.java")
         ]
-        assertTrue 'contains files', changes.files.containsAll(expectedFiles)
+        assertTrue 'contains files', changes.changedFiles.containsAll(expectedFiles)
     }
 
     @Test
     void returnsSourceFilesForCommitIdRange() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        Changes changes = project.task([type: Changes], "changes", {
+        DetectChanges changes = project.task([type: DetectChanges], "changes", {
             ext.fromRevision = {
                 'd8b7a7a096dd419e07f561a198f1445d4d263dd6'
             }
             ext.revision = {
                 '3ffc420595c4c81d951f1dd56038c55ae49edf9f'
             }
-        }) as Changes
+        }) as DetectChanges
         changes.execute()
         def expectedFiles = [
                 new File("src/test/groovy/com/vandalsoftware/tests/model/Cat.groovy"),
@@ -79,36 +79,36 @@ class ChangesTests {
                 new File("src/test/groovy/com/vandalsoftware/tools/gradle/UsagesTests.groovy"),
                 new File("src/main/java/com/vandalsoftware/tools/classfile/ClassCollector.java")
         ]
-        assertTrue 'contains files', changes.files.containsAll(expectedFiles)
+        assertTrue 'contains files', changes.changedFiles.containsAll(expectedFiles)
     }
 
     @Test
     void returnsEmptyListForSameToAndFromRevision() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        Changes changes = project.task([type: Changes], "changes", {
+        DetectChanges changes = project.task([type: DetectChanges], "changes", {
             ext.fromRevision = {
                 Constants.HEAD
             }
             ext.revision = {
                 Constants.HEAD
             }
-        }) as Changes
+        }) as DetectChanges
         changes.execute()
-        assertEquals 'empty', 0, changes.files.size()
+        assertEquals 'empty', 0, changes.changedFiles.size()
     }
 
     @Test
     void returnsNonEmptyListForUnassignedExtensionProperties() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
-        Changes changes = project.task([type: Changes], "changes") as Changes
+        DetectChanges changes = project.task([type: DetectChanges], "changes") as DetectChanges
         changes.execute()
-        assertNotEquals 'empty', 0, changes.files.size()
+        assertNotEquals 'empty', 0, changes.changedFiles.size()
     }
 
     @Test
     void throwsExceptionForInvalidGitRepo() {
         Project project = ProjectBuilder.builder().build()
-        Changes changes = project.task([type: Changes], "changes") as Changes
+        DetectChanges changes = project.task([type: DetectChanges], "changes") as DetectChanges
         try {
             changes.execute()
             fail("Repository should not exist at ${project.rootDir}")
@@ -120,11 +120,11 @@ class ChangesTests {
     void throwsExceptionForInvalidRevStr() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
         String invalidRevision = "vandal was here";
-        Changes changes = project.task([type: Changes], "changes", {
+        DetectChanges changes = project.task([type: DetectChanges], "changes", {
             ext.revision = {
                 invalidRevision
             }
-        }) as Changes
+        }) as DetectChanges
         try {
             changes.execute()
             fail("rev string should be invalid $invalidRevision")
