@@ -67,7 +67,7 @@ class DetectChanges extends DefaultTask {
             RevCommit commit = getCommit(repository, revWalk)
             RevCommit fromCommit = getFromCommit(repository, revWalk, commit)
             if (fromCommit) {
-                logger.info("Diff ${commit.getId().name}..${fromCommit.getId().name}")
+                logger.info("Diff ${fromCommit.getId().name}..${commit.getId().name}")
                 DiffFormatter diffFormatter = new DiffFormatter(NullOutputStream.INSTANCE)
                 diffFormatter.setRepository(repository)
                 diffFormatter.setDiffComparator(RawTextComparator.DEFAULT)
