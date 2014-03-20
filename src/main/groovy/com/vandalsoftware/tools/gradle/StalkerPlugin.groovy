@@ -48,49 +48,70 @@ class StalkerPlugin implements Plugin<Project> {
             project.configure(project) {
                 if (it.extensions.findByName('android') &&
                         canSetStalkerExtensionDefaults(project)) {
-                    project.logger.info("Setting stalker extension defaults for android")
-                    setSrcRoot(project, project.android.sourceSets.main.java.getSrcDirs(),
-                            stalkerExtensionDefaults)
-                    setSrcRoot(project, project.android.sourceSets.androidTest.java.getSrcDirs(),
-                            stalkerExtensionDefaults)
+                    project.android.sourceSets.each() {
+                        setSrcRoot(it.java.getSrcDirs(), stalkerExtensionDefaults)
+                    }
 
                     gradle.taskGraph.whenReady { taskGraph ->
                         if (android.productFlavors.size() > 0) {
                             for (pf in android.productFlavors) {
-                                def srcFlavorDirs = project.android.sourceSets."${pf.name}".java.getSrcDirs()
-                                setSrcRoot(project, srcFlavorDirs, stalkerExtensionDefaults)
                                 setClassPaths(project, pf, android.buildTypes, stalkerExtensionDefaults)
                             }
                         } else {
                             setClassPaths(project, null, android.buildTypes, stalkerExtensionDefaults)
                         }
                     }
+                } else if (it.plugins.hasPlugin('java')) {
+                    project.sourceSets.each() {
+                        setSrcRoot(it.java.getSrcDirs(), stalkerExtensionDefaults)
+                        setSrcClassPath(it.output.classesDir, stalkerExtensionDefaults)
+                    }
+                    setTargetClassPath(project.sourceSets.test.output.classesDir,
+                        stalkerExtensionDefaults)
                 }
             }
 
             ext.srcRoots = {
+                def srcRoots
                 if (extension.getSrcRoots().size() == 0) {
-                    return stalkerExtensionDefaults.getSrcRoots()
+                    srcRoots = stalkerExtensionDefaults.getSrcRoots()
                 } else {
-                    return extension.getSrcRoots()
+                    srcRoots = extension.getSrcRoots()
                 }
+                project.logger.info("Using srcRoots:")
+                srcRoots.each() {
+                    project.logger.info("\t${it.path}")
+                }
+                return srcRoots
             }
             ext.classpaths = {
+                def srcClassPaths
                 if (extension.getSrcClassPaths().size() == 0) {
-                    return stalkerExtensionDefaults.getSrcClassPaths()
+                    srcClassPaths = stalkerExtensionDefaults.getSrcClassPaths()
                 } else {
-                    return extension.getSrcClassPaths()
+                    srcClassPaths = extension.getSrcClassPaths()
                 }
+                project.logger.info("Using srcClassPaths:")
+                srcClassPaths.each() {
+                    project.logger.info("\t${it.path}")
+                }
+                return srcClassPaths
             }
             ext.input = {
                 return changesTask.output()
             }
             ext.targets = {
+                def targetClassPaths
                 if (extension.getTargetClassPaths().size() == 0) {
-                    return stalkerExtensionDefaults.getTargetClassPaths()
+                    targetClassPaths = stalkerExtensionDefaults.getTargetClassPaths()
                 } else {
-                    return extension.getTargetClassPaths()
+                    targetClassPaths = extension.getTargetClassPaths()
                 }
+                project.logger.info("Using targetClassPaths:")
+                targetClassPaths.each() {
+                    project.logger.info("\t${it.path}")
+                }
+                return targetClassPaths
             }
             description = "Analyze class usage"
             group = "Analyze"
@@ -157,9 +178,8 @@ class StalkerPlugin implements Plugin<Project> {
         return isNewer
     }
 
-    def setSrcRoot(project, srcDirs, stalkerExt) {
+    def setSrcRoot(srcDirs, stalkerExt) {
         for (d in srcDirs) {
-            project.logger.info("Adding stalker srcRoot ${d}")
             stalkerExt.srcRoot d
         }
     }
@@ -167,30 +187,36 @@ class StalkerPlugin implements Plugin<Project> {
     def setClassPaths(project, productFlavor, buildTypes, stalkerExt) {
         for (bt in buildTypes) {
             def srcClassPath = getSrcClassPath(project, productFlavor, bt)
-            project.logger.info("Adding stalker srcClassPath ${srcClassPath}")
-            stalkerExt.srcClassPath srcClassPath
+            setSrcClassPath(srcClassPath, stalkerExt)
 
             def targetClassPath = getTargetClassPath(project, productFlavor, bt)
-            project.logger.info("Adding stalker targetClassPath ${targetClassPath}")
-            stalkerExt.targetClassPath targetClassPath
+            setTargetClassPath(targetClassPath, stalkerExt)
         }
+    }
+
+    def setSrcClassPath(srcClassPath, stalkerExt) {
+        stalkerExt.srcClassPath srcClassPath
+    }
+
+    def setTargetClassPath(targetClassPath, stalkerExt) {
+        stalkerExt.targetClassPath targetClassPath
     }
 
     def getSrcClassPath(project, productFlavor, buildType) {
         if (productFlavor != null) {
-            return constructClassPath([project.buildDir.name, 'classes', productFlavor.name,
+            return constructClassPath([project.buildDir.path, 'classes', productFlavor.name,
                                        buildType.name])
         } else {
-            return constructClassPath([project.buildDir.name, 'classes', buildType.name])
+            return constructClassPath([project.buildDir.path, 'classes', buildType.name])
         }
     }
 
     def getTargetClassPath(project, productFlavor, buildType) {
         if (productFlavor != null) {
-            return constructClassPath([project.buildDir.name, 'classes', 'test',
+            return constructClassPath([project.buildDir.path, 'classes', 'test',
                                        productFlavor.name, buildType.name])
         } else {
-            return constructClassPath([project.buildDir.name, 'classes', 'test', buildType.name])
+            return constructClassPath([project.buildDir.path, 'classes', 'test', buildType.name])
         }
     }
 
