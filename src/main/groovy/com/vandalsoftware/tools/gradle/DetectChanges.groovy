@@ -44,10 +44,10 @@ import org.gradle.api.tasks.TaskAction
  *
  * @author Jonathan Le
  */
-class Changes extends DefaultTask {
+class DetectChanges extends DefaultTask {
     Set<File> files
 
-    Changes() {
+    DetectChanges() {
         files = new HashSet<>()
     }
 

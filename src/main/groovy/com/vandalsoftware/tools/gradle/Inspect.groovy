@@ -24,7 +24,7 @@ import org.gradle.api.tasks.TaskAction
 /**
  * @author Jonathan Le
  */
-class Usages extends DefaultTask {
+class Inspect extends DefaultTask {
     public static final char CLASS_SEPARATOR_CHAR = '.' as char
     Set<File> files
     Set<String> classNames
