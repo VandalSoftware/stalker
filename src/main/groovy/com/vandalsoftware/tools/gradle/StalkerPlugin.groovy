@@ -16,6 +16,7 @@
 
 package com.vandalsoftware.tools.gradle
 
+import org.eclipse.jgit.lib.Constants
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -29,21 +30,17 @@ class StalkerPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         extension = project.extensions.create("stalker", StalkerExtension)
-        Task changesTask = project.task([type: GetChangedFiles], "changes", {
-            def ref = extension.getRevision()
-            args "-r"
-            if (ref) {
-                args ref
-            } else {
-                args "HEAD"
+        DetectChanges changesTask = project.task([type: DetectChanges], "changes", {
+            ext.revision = {
+                def ref = extension.getRevision()
+                if (ref) {
+                    ref
+                } else {
+                    Constants.HEAD
+                }
             }
-            standardOutput = new ByteArrayOutputStream()
-            ext.output = {
-                String out = standardOutput.toString()
-                out.split("\n") as Set
-            }
-        })
-        Task stalkTask = project.task([type: Usages, dependsOn: changesTask], "stalk", {
+        }) as DetectChanges
+        Task stalkTask = project.task([type: Inspect, dependsOn: changesTask], "stalk", {
             def stalkerExtensionDefaults = new StalkerExtension()
             project.configure(project) {
                 if (it.extensions.findByName('android') &&
@@ -98,7 +95,7 @@ class StalkerPlugin implements Plugin<Project> {
                 return srcClassPaths
             }
             ext.input = {
-                return changesTask.output()
+                return changesTask.getChangedFiles()
             }
             ext.targets = {
                 def targetClassPaths
@@ -116,19 +113,20 @@ class StalkerPlugin implements Plugin<Project> {
             description = "Analyze class usage"
             group = "Analyze"
         }) << {
-            if (extension.afterStalk) {
-                extension.afterStalk(classNames)
+            if (extension.standardOutput != null) {
+                PrintStream out = new PrintStream(extension.standardOutput, true)
+                affectedClasses.each() {
+                    out.println(it)
+                }
+                out.close()
             } else {
-                if (extension.standardOutput != null) {
-                    PrintStream out = new PrintStream(extension.standardOutput, true)
-                    classNames.each() {
-                        out.println(it)
+                if (affectedClasses.size() > 0) {
+                    project.logger.lifecycle "Affected classes:"
+                    affectedClasses.each() { className ->
+                        project.logger.lifecycle "  $className"
                     }
-                    out.close()
                 } else {
-                    classNames.each() {
-                        println(it);
-                    }
+                    project.logger.lifecycle "No affected classes."
                 }
             }
         }

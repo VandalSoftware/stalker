@@ -30,14 +30,14 @@ class StalkerPluginTests {
     public void stalkerPluginAddsStalkTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'stalker'
-        assertTrue(project.tasks.stalk instanceof Usages)
+        assertTrue(project.tasks.stalk instanceof Inspect)
     }
 
     @Test
     public void stalkerPluginAddsChangesTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'stalker'
-        assertTrue(project.tasks.changes instanceof GetChangedFiles)
+        assertTrue(project.tasks.changes instanceof DetectChanges)
     }
 
     @Test

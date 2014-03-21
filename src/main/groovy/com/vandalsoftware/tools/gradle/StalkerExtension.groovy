@@ -26,8 +26,6 @@ class StalkerExtension {
     String revision
     OutputStream standardOutput
 
-    Closure afterStalk
-
     StalkerExtension() {
         srcRoots = new LinkedHashSet<>()
         targetClassPaths = new LinkedHashSet<>()
@@ -56,9 +54,5 @@ class StalkerExtension {
 
     void srcClassPath(File dir) {
         srcClassPaths.add(dir)
-    }
-
-    void afterStalk(Closure c) {
-        afterStalk = c
     }
 }

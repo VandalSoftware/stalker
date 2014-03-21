@@ -24,13 +24,15 @@ import org.gradle.api.tasks.TaskAction
 /**
  * @author Jonathan Le
  */
-class Usages extends DefaultTask {
+class Inspect extends DefaultTask {
     public static final char CLASS_SEPARATOR_CHAR = '.' as char
-    Set<File> files
-    Set<String> classNames
+    /**
+     * Names of affected classes.
+     */
+    Set<String> affectedClasses
 
     @TaskAction
-    void usages() {
+    void inspect() {
         Set srcRoots = srcRoots() as Set
         Set srcClassPaths = classpaths() as Set
         def inputs = input() as Set
@@ -38,19 +40,20 @@ class Usages extends DefaultTask {
         Set inputClasses = new LinkedHashSet(inputs)
         LinkedList classesToExamine = new LinkedList(inputs)
         Set inputClassNames = new LinkedHashSet()
-        final ClassCollector sourceReader = new ClassCollector();
+        final ClassCollector sourceReader = new ClassCollector()
         srcClassPaths.each() { File dir ->
-            sourceReader.collect(dir);
+            sourceReader.collect(dir)
         }
+        def examined = [] as HashSet
         while (!classesToExamine.isEmpty()) {
             String filePath = classesToExamine.remove()
             File fileToExamine = new File(filePath)
             if (!fileToExamine.isFile()) {
                 continue
             }
-            logger.info "Examining $fileToExamine:"
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.path)) {
+                    logger.info "Examining $fileToExamine"
                     def fileName = fileToExamine.name
                     def fileExt = fileName.substring(fileName.lastIndexOf('.'))
                     String relFilePath = filePath.substring(srcRoot.path.length() + 1,
@@ -59,8 +62,8 @@ class Usages extends DefaultTask {
                         File f = new File(cp, relFilePath)
                         ClassInfo info = sourceReader.collectFile(f)
                         if (info != null) {
-                            String cname = info.thisClassName;
-                            inputClassNames.add(cname);
+                            String cname = info.thisClassName
+                            inputClassNames.add(cname)
                             collectInputs(sourceReader.findSubclasses(cname),
                                     srcRoot, fileExt, inputClasses, classesToExamine,
                                     { logger.info "  $it extends $cname" })
@@ -71,33 +74,39 @@ class Usages extends DefaultTask {
                             }
                         }
                     }
+                    examined.add(filePath)
                 }
             }
         }
-        final ClassCollector targetReader = new ClassCollector();
+        def skipped = []
+        inputClasses.each() {
+            if (!examined.contains(it)) {
+                skipped.add(it)
+            }
+        }
+        if (skipped.size() > 0) {
+            logger.info "Not found in any source root:"
+            skipped.each {
+                logger.info "  $it"
+            }
+        }
+        final ClassCollector targetReader = new ClassCollector()
         def targetClassPaths = targets()
         targetClassPaths.each() { File dir ->
-            targetReader.collect(dir);
+            targetReader.collect(dir)
         }
 
-        classNames = new LinkedHashSet<>()
+        affectedClasses = new LinkedHashSet<>()
 
         // Check each file for usage of each input
-        File[] used = targetReader.findUsages(inputClassNames);
-        if (used.size() > 0) {
-            logger.lifecycle "Affected classes:"
-            used.each() { f ->
-                targetClassPaths.each() { File target ->
-                    if (f.path.startsWith(target.path)) {
-                        def className = pathToClassName(target.path, f.path, ".class")
-                        logger.lifecycle "  $className"
-                        classNames.add(className)
-                    }
+        File[] used = targetReader.findUsages(inputClassNames)
+        used.each() { f ->
+            targetClassPaths.each() { File target ->
+                if (f.path.startsWith(target.path)) {
+                    def className = pathToClassName(target.path, f.path, ".class")
+                    affectedClasses.add(className)
                 }
             }
-        }
-        if (used.length == 0) {
-            logger.lifecycle "No affected classes."
         }
     }
 
@@ -125,21 +134,55 @@ class Usages extends DefaultTask {
 
     private static String classNameToPath(String className, String basePath, String extension) {
         return new File(basePath, className.replace(CLASS_SEPARATOR_CHAR,
-                File.separatorChar) + extension);
+                File.separatorChar) + extension)
     }
 
     boolean checkInputs() {
-        return classpaths() && srcRoots() && input() && checkTargets()
+        StringBuilder msg = new StringBuilder()
+        def hasClasspaths = checkPathsExist(classpaths(), msg)
+        if (!hasClasspaths) {
+            msg.insert(0, "  No such classpaths exist:\n")
+        }
+        def hasTargets = checkPathsExist(targets(), msg)
+        if (!hasTargets) {
+            msg.insert(0, "  No such targets exist:\n")
+        }
+        def hasInput = input()
+        if (!hasInput) {
+            msg.insert(0, "  No inputs.")
+        }
+        def hasSrcRoots = checkPathsExist(srcRoots(), msg)
+        if (!hasSrcRoots) {
+            msg.insert(0, "  No such source roots exist:")
+        }
+        boolean ok = hasClasspaths && hasSrcRoots && hasInput && hasTargets
+        if (!ok) {
+            logger.lifecycle("Skipping ${name} because...\n$msg")
+        }
+        return ok
     }
 
-    private boolean checkTargets() {
-        boolean run = false
-        targets().each() { File dir ->
+    /**
+     * Checks and returns {@code true} if at least one path exists.
+     *
+     * @param paths the paths to check
+     * @param skipMsg the skip message to append the non-existent path
+     * @return true if at least one path exists
+     */
+    private static boolean checkPathsExist(paths, skipMsg) {
+        boolean atLeastOneExists = false
+        StringBuilder missing = new StringBuilder()
+        paths.each() { File dir ->
             if (dir.exists()) {
-                run = true
+                atLeastOneExists = true
+            } else {
+                missing.append("  ").append(dir).append('\n')
             }
         }
-        return run
+        if (!atLeastOneExists) {
+            skipMsg.append(missing)
+        }
+        return atLeastOneExists
     }
 
     private static String pathToClassName(String basePath, String path, String extension) {

@@ -17,6 +17,7 @@
 buildscript {
     repositories {
         mavenLocal()
+        mavenCentral()
         maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
     }
     dependencies {
@@ -45,6 +46,8 @@ version = getVersion("0.4.0")
 stalker {
     srcRoot "src/main/java"
     srcRoot "src/test/java"
+    srcRoot "src/main/groovy"
+    srcRoot "src/test/groovy"
     srcClassPath "$buildDir/classes/main"
     srcClassPath "$buildDir/classes/test"
     targetClassPath "$buildDir/classes/test"
@@ -148,6 +151,7 @@ repositories {
 dependencies {
     compile gradleApi()
     compile localGroovy()
+    compile 'org.eclipse.jgit:org.eclipse.jgit:3.3.0.201403021825-r'
     testCompile 'com.android.tools.build:gradle:0.9.+'
 }
 

@@ -10,9 +10,9 @@ import static org.junit.Assert.*
  */
 class UsagesTests {
     @Test
-    void testGroovyFilesCollected() {
+    void groovyFilesCollected() {
         Project project = ProjectBuilder.builder().build()
-        Usages usages = project.task([type: Usages], "usages", {
+        Inspect usages = project.task([type: Inspect], "usages", {
             ext.srcRoots = {
                 [new File("src/main/groovy"), new File("src/test/groovy")] as Set
             }
@@ -23,15 +23,15 @@ class UsagesTests {
                 [new File("build/classes/test")] as Set
             }
             ext.input = {
-                ["src/main/groovy/com/vandalsoftware/tools/gradle/Usages.groovy",
+                ["src/main/groovy/com/vandalsoftware/tools/gradle/Inspect.groovy",
                         "src/test/groovy/com/vandalsoftware/tools/gradle/UsagesTests.groovy"] as Set
             }
-        }) as Usages
+        }) as Inspect
         usages.execute()
-        assertNotNull("usages.classNames is not null", usages.classNames)
-        assertFalse("usages.classNames is non-empty", usages.classNames.size() == 0)
+        assertNotNull("usages.affectedClasses is not null", usages.affectedClasses)
+        assertFalse("usages.affectedClasses is non-empty", usages.affectedClasses.size() == 0)
         assertTrue('UsagesTests is an affected file',
-                usages.classNames.contains("com.vandalsoftware.tools.gradle.UsagesTests"))
+                usages.affectedClasses.contains("com.vandalsoftware.tools.gradle.UsagesTests"))
     }
 
     /**
@@ -39,9 +39,9 @@ class UsagesTests {
      * target class paths.
      */
     @Test
-    void testAffectedFileInSrcAndTargetClasspath() {
+    void affectedFileInSrcAndTargetClasspath() {
         Project project = ProjectBuilder.builder().build()
-        Usages usages = project.task([type: Usages], "usages", {
+        Inspect usages = project.task([type: Inspect], "usages", {
             ext.srcRoots = {
                 [new File("src/main/groovy"), new File("src/test/groovy")] as Set
             }
@@ -54,9 +54,9 @@ class UsagesTests {
             ext.input = {
                 ["src/test/groovy/com/vandalsoftware/tests/model/Cat.groovy"] as Set
             }
-        }) as Usages
+        }) as Inspect
         usages.execute()
         assertTrue('Cat is an affected file',
-                usages.classNames.contains("com.vandalsoftware.tests.model.Cat"))
+                usages.affectedClasses.contains("com.vandalsoftware.tests.model.Cat"))
     }
 }

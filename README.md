@@ -110,16 +110,14 @@ For example, in this imaginary Python script I wrote.
 
     $ cat out.txt | test_runner.py -s mycooldevice
     
-Taking it one step further, we can use the afterStalk closure to do whatever we want within the build script itself:
+Taking it one step further, we can append a closure to the `stalk` task to run after it completes:
 
 **build.gradle**
 
-    stalker {
-      afterStalk { names ->
-        names.each() {
+    stalk << {
+        affectedClasses.each() {
             println "adb shell am instrument -w -e class " + it + " com.vandalsoftware.android.tests/android.test.InstrumentationTestRunner"
         }
-      }
     }
 
 Which produces some output:
