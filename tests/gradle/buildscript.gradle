@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
+def localRepo = file("../../build/repo")
+
 repositories {
-    mavenLocal()
-    mavenCentral()
+    maven { url(localRepo) }
     maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
+    mavenCentral()
 }
 dependencies {
     classpath "com.vandalsoftware.tools.gradle:stalker:0.4.0-SNAPSHOT"

@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-include 'single'
-include 'single-android'
-include 'single-android-library'
+include 'tests:single'
+include 'tests:single-android'
+include 'tests:single-android-library'
