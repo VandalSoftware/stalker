@@ -105,18 +105,14 @@ class ChangesTests {
         assertNotEquals 'empty', 0, changes.changedFiles.size()
     }
 
-    @Test
+    @Test(expected = Exception)
     void throwsExceptionForInvalidGitRepo() {
         Project project = ProjectBuilder.builder().build()
         DetectChanges changes = project.task([type: DetectChanges], "changes") as DetectChanges
-        try {
-            changes.execute()
-            fail("Repository should not exist at ${project.rootDir}")
-        } catch (Exception ignored) {
-        }
+        changes.execute()
     }
 
-    @Test
+    @Test(expected = Exception)
     void throwsExceptionForInvalidRevStr() {
         Project project = ProjectBuilder.builder().withProjectDir(WORKING_DIR).build()
         String invalidRevision = "vandal was here";
@@ -125,10 +121,6 @@ class ChangesTests {
                 invalidRevision
             }
         }) as DetectChanges
-        try {
-            changes.execute()
-            fail("rev string should be invalid $invalidRevision")
-        } catch (Exception ignored) {
-        }
+        changes.execute()
     }
 }
