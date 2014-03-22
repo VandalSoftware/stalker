@@ -82,6 +82,15 @@ class Inspect extends DefaultTask {
                 }
             }
         }
+        final ClassCollector targetReader = new ClassCollector()
+        def targetClassPaths = targets()
+        if (logger.isInfoEnabled()) {
+            printDirs(targetClassPaths, 'targetClassPaths')
+        }
+        targetClassPaths.each() { File dir ->
+            targetReader.collect(dir)
+        }
+
         def skipped = []
         inputClasses.each() {
             if (!examined.contains(it)) {
@@ -93,14 +102,6 @@ class Inspect extends DefaultTask {
             skipped.each {
                 logger.info "  $it"
             }
-        }
-        final ClassCollector targetReader = new ClassCollector()
-        def targetClassPaths = targets()
-        if (logger.isInfoEnabled()) {
-            printDirs(targetClassPaths, 'targetClassPaths')
-        }
-        targetClassPaths.each() { File dir ->
-            targetReader.collect(dir)
         }
 
         affectedClasses = new LinkedHashSet<>()
