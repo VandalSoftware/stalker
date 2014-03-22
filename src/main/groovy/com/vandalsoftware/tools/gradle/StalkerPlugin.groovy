@@ -75,10 +75,7 @@ class StalkerPlugin implements Plugin<Project> {
                 } else {
                     srcRoots = extension.getSrcRoots()
                 }
-                project.logger.info("Using srcRoots:")
-                srcRoots.each() {
-                    project.logger.info("\t${it.path}")
-                }
+                logDirs(project, srcRoots, 'srcRoots')
                 return srcRoots
             }
             ext.classpaths = {
@@ -88,10 +85,7 @@ class StalkerPlugin implements Plugin<Project> {
                 } else {
                     srcClassPaths = extension.getSrcClassPaths()
                 }
-                project.logger.info("Using srcClassPaths:")
-                srcClassPaths.each() {
-                    project.logger.info("\t${it.path}")
-                }
+                logDirs(project, srcClassPaths, 'srcClassPaths')
                 return srcClassPaths
             }
             ext.input = {
@@ -104,10 +98,7 @@ class StalkerPlugin implements Plugin<Project> {
                 } else {
                     targetClassPaths = extension.getTargetClassPaths()
                 }
-                project.logger.info("Using targetClassPaths:")
-                targetClassPaths.each() {
-                    project.logger.info("\t${it.path}")
-                }
+                logDirs(project, targetClassPaths, 'targetClassPaths')
                 return targetClassPaths
             }
             description = "Analyze class usage"
@@ -225,5 +216,12 @@ class StalkerPlugin implements Plugin<Project> {
             path += File.separatorChar
         }
         return path.substring(0, path.size() - 1)
+    }
+
+    def logDirs(project, dirs, description) {
+        project.logger.info("Using ${description}:")
+        dirs.each() {
+            project.logger.info("\t${it.path}" - project.projectDir.path)
+        }
     }
 }
