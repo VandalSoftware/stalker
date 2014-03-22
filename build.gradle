@@ -15,10 +15,12 @@
  */
 
 buildscript {
+    ext.localRepo = file("$buildDir/repo")
+
     repositories {
-        mavenLocal()
-        mavenCentral()
+        maven { url(localRepo) }
         maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
+        mavenCentral()
     }
     dependencies {
         classpath "com.vandalsoftware.tools.gradle:stalker:0.4.0-SNAPSHOT"
@@ -78,7 +80,7 @@ task publishLocal(type: Upload) {
     configuration = configurations.default
     repositories {
         mavenDeployer {
-            repository(url: mavenLocal().getUrl())
+            repository(url: localRepo.toURI())
         }
     }
 }
@@ -144,7 +146,6 @@ uploadArchives {
 }
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 
@@ -166,3 +167,4 @@ task wrapper(type: Wrapper) {
     gradleVersion = '1.11'
 }
 
+stalk.dependsOn testClasses
