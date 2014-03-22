@@ -19,7 +19,7 @@ package com.vandalsoftware.tools.util
 /**
  * @author Jonathan Le
  */
-public class FileUtils {
+public abstract class FileUtils {
     public static File constructFile(String ... pathParts) {
         def path = ''
         pathParts.each {
