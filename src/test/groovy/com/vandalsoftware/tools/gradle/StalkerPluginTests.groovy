@@ -16,12 +16,11 @@
 
 package com.vandalsoftware.tools.gradle
 
-import com.vandalsoftware.tools.util.FileUtils
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 
-import static org.junit.Assert.assertTrue
+import static com.vandalsoftware.tools.util.FileUtils.constructFile
 
 /**
  * @author Jonathan Le
@@ -31,14 +30,14 @@ class StalkerPluginTests {
     public void stalkerPluginAddsStalkTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'stalker'
-        assertTrue(project.tasks.stalk instanceof Inspect)
+        assert project.tasks.stalk instanceof Inspect
     }
 
     @Test
     public void stalkerPluginAddsChangesTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'stalker'
-        assertTrue(project.tasks.changes instanceof DetectChanges)
+        assert project.tasks.changes instanceof DetectChanges
     }
 
     @Test
@@ -73,7 +72,7 @@ class StalkerPluginTests {
         def project = getAndroidProject(false)
         def plugin = new StalkerPlugin()
         def classPath = plugin.getAndroidSrcClassPath(project, null, project.android.buildTypes.debug)
-        def expectedClassPath = FileUtils.constructFile(project.buildDir.path, 'classes',
+        def expectedClassPath = constructFile(project.buildDir.path, 'classes',
                              project.android.buildTypes.debug.name)
         assert expectedClassPath == classPath
     }
@@ -99,7 +98,7 @@ class StalkerPluginTests {
         def plugin = new StalkerPlugin()
         def classPath = plugin.getAndroidSrcClassPath(project, project.android.productFlavors.flavor1,
                 project.android.buildTypes.debug)
-        def expectedClassPath = FileUtils.constructFile(project.buildDir.path, 'classes',
+        def expectedClassPath = constructFile(project.buildDir.path, 'classes',
                              project.android.productFlavors.flavor1.name,
                              project.android.buildTypes.debug.name)
         assert expectedClassPath == classPath
@@ -110,7 +109,7 @@ class StalkerPluginTests {
         def project = getAndroidProject(false)
         def plugin = new StalkerPlugin()
         def classPath = plugin.getAndroidTestClassPath(project, null, project.android.buildTypes.debug)
-        def expectedClassPath = FileUtils.constructFile(project.buildDir.path, 'classes', 'test',
+        def expectedClassPath = constructFile(project.buildDir.path, 'classes', 'test',
                              project.android.buildTypes.debug.name)
         assert expectedClassPath == classPath
     }
@@ -121,7 +120,7 @@ class StalkerPluginTests {
         def plugin = new StalkerPlugin()
         def classPath = plugin.getAndroidTestClassPath(project, project.android.productFlavors.flavor1,
                 project.android.buildTypes.debug)
-        def expectedClassPath = FileUtils.constructFile(project.buildDir.path, 'classes', 'test',
+        def expectedClassPath = constructFile(project.buildDir.path, 'classes', 'test',
                              project.android.productFlavors.flavor1.name,
                              project.android.buildTypes.debug.name)
         assert expectedClassPath == classPath
@@ -153,9 +152,17 @@ class StalkerPluginTests {
         def project = ProjectBuilder.builder().build()
         project.apply plugin: 'java'
         project.apply plugin: 'stalker'
-        assert 2 == project.tasks.stalk.ext.srcRoots.call().size()
-        assert 2 == project.tasks.stalk.ext.classpaths.call().size()
-        assert 1 == project.tasks.stalk.ext.targets.call().size()
+        def srcRoots = project.tasks.stalk.ext.srcRoots.call()
+        assert 2 == srcRoots.size()
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'main', 'java'))
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'test', 'java'))
+        def classpaths = project.tasks.stalk.ext.classpaths.call()
+        assert 2 == classpaths.size()
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'test'))
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'main'))
+        def targets = project.tasks.stalk.ext.targets.call()
+        assert 1 == targets.size()
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'test'))
     }
 
     @Test
@@ -163,8 +170,18 @@ class StalkerPluginTests {
         def project = ProjectBuilder.builder().build()
         project.apply plugin: 'groovy'
         project.apply plugin: 'stalker'
-        assert 4 == project.tasks.stalk.ext.srcRoots.call().size()
-        assert 2 == project.tasks.stalk.ext.classpaths.call().size()
-        assert 1 == project.tasks.stalk.ext.targets.call().size()
+        def srcRoots = project.tasks.stalk.ext.srcRoots.call()
+        assert 4 == srcRoots.size()
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'main', 'java'))
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'test', 'java'))
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'main', 'groovy'))
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'test', 'groovy'))
+        def classpaths = project.tasks.stalk.ext.classpaths.call()
+        assert 2 == classpaths.size()
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'test'))
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'main'))
+        def targets = project.tasks.stalk.ext.targets.call()
+        assert 1 == targets.size()
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'test'))
     }
 }
