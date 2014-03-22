@@ -8,7 +8,7 @@ import static org.junit.Assert.*
 /**
  * @author Jonathan Le
  */
-class UsagesTests {
+class InspectTests {
     @Test
     void groovyFilesCollected() {
         Project project = ProjectBuilder.builder().build()
@@ -24,14 +24,14 @@ class UsagesTests {
             }
             ext.input = {
                 ["src/main/groovy/com/vandalsoftware/tools/gradle/Inspect.groovy",
-                        "src/test/groovy/com/vandalsoftware/tools/gradle/UsagesTests.groovy"] as Set
+                        "src/test/groovy/com/vandalsoftware/tools/gradle/InspectTests.groovy"] as Set
             }
         }) as Inspect
         usages.execute()
         assertNotNull("usages.affectedClasses is not null", usages.affectedClasses)
         assertFalse("usages.affectedClasses is non-empty", usages.affectedClasses.size() == 0)
-        assertTrue('UsagesTests is an affected file',
-                usages.affectedClasses.contains("com.vandalsoftware.tools.gradle.UsagesTests"))
+        assertTrue('InspectTests is an affected file',
+                usages.affectedClasses.contains("com.vandalsoftware.tools.gradle.InspectTests"))
     }
 
     /**
