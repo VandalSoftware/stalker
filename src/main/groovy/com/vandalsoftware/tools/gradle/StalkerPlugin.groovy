@@ -21,6 +21,7 @@ import org.eclipse.jgit.lib.Constants
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.SourceSet
 
 /**
  * @author Jonathan Le
@@ -32,32 +33,32 @@ class StalkerPlugin implements Plugin<Project> {
     void apply(Project project) {
         extension = project.extensions.create('stalker', StalkerExtension)
         def stalkerExtensionDefaults = new StalkerExtension()
-        project.configure(project) {
-            if (it.extensions.findByName('android') &&
-                    canSetStalkerExtensionDefaults(project)) {
-                project.android.sourceSets.each() {
-                    addSrcRoots(it.java.getSrcDirs(), stalkerExtensionDefaults)
+        project.configure(project) { Project configProject ->
+            if (configProject.extensions.findByName('android') &&
+                    canSetStalkerExtensionDefaults(configProject)) {
+                configProject.android.sourceSets.each() { sourceSet ->
+                    addSrcRoots(sourceSet.java.getSrcDirs(), stalkerExtensionDefaults)
                 }
 
                 gradle.taskGraph.whenReady { taskGraph ->
-                    if (project.android.productFlavors.size() > 0) {
-                        for (pf in project.android.productFlavors) {
+                    if (configProject.android.productFlavors.size() > 0) {
+                        for (pf in configProject.android.productFlavors) {
                             println "flavor: ${pf.name}"
-                            addAndroidClassPaths(project, pf, project.android.buildTypes, stalkerExtensionDefaults)
+                            addAndroidClassPaths(configProject, pf, configProject.android.buildTypes, stalkerExtensionDefaults)
                         }
                     } else {
-                        addAndroidClassPaths(project, null, project.android.buildTypes, stalkerExtensionDefaults)
+                        addAndroidClassPaths(configProject, null, configProject.android.buildTypes, stalkerExtensionDefaults)
                     }
                 }
             }
-            if (it.plugins.hasPlugin('java')) {
-                project.sourceSets.each() {
-                    addSrcRoots(it.java.getSrcDirs(), stalkerExtensionDefaults)
-                    addSrcClassPath(it.output.classesDir, stalkerExtensionDefaults)
+            if (configProject.plugins.hasPlugin('java') || configProject.plugins.hasPlugin('groovy')) {
+                configProject.sourceSets.each() { SourceSet sourceSet ->
+                    addSrcRoots(sourceSet.allJava.srcDirs, stalkerExtensionDefaults)
+                    addSrcClassPath(sourceSet.output.classesDir, stalkerExtensionDefaults)
                 }
-                addSrcClassPath(project.sourceSets.test.output.classesDir,
+                addSrcClassPath(configProject.sourceSets.test.output.classesDir,
                         stalkerExtensionDefaults)
-                addTargetClassPath(project.sourceSets.test.output.classesDir,
+                addTargetClassPath(configProject.sourceSets.test.output.classesDir,
                         stalkerExtensionDefaults)
             }
         }
