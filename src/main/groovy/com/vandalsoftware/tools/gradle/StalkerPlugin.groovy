@@ -52,10 +52,10 @@ class StalkerPlugin implements Plugin<Project> {
                     gradle.taskGraph.whenReady { taskGraph ->
                         if (android.productFlavors.size() > 0) {
                             for (pf in android.productFlavors) {
-                                setClassPaths(project, pf, android.buildTypes, stalkerExtensionDefaults)
+                                setAndroidClassPaths(project, pf, android.buildTypes, stalkerExtensionDefaults)
                             }
                         } else {
-                            setClassPaths(project, null, android.buildTypes, stalkerExtensionDefaults)
+                            setAndroidClassPaths(project, null, android.buildTypes, stalkerExtensionDefaults)
                         }
                     }
                 } else if (it.plugins.hasPlugin('java')) {
@@ -75,10 +75,7 @@ class StalkerPlugin implements Plugin<Project> {
                 } else {
                     srcRoots = extension.getSrcRoots()
                 }
-                project.logger.info("Using srcRoots:")
-                srcRoots.each() {
-                    project.logger.info("\t${it.path}")
-                }
+                logDirs(project, srcRoots, 'srcRoots')
                 return srcRoots
             }
             ext.classpaths = {
@@ -88,10 +85,7 @@ class StalkerPlugin implements Plugin<Project> {
                 } else {
                     srcClassPaths = extension.getSrcClassPaths()
                 }
-                project.logger.info("Using srcClassPaths:")
-                srcClassPaths.each() {
-                    project.logger.info("\t${it.path}")
-                }
+                logDirs(project, srcClassPaths, 'srcClassPaths')
                 return srcClassPaths
             }
             ext.input = {
@@ -104,10 +98,7 @@ class StalkerPlugin implements Plugin<Project> {
                 } else {
                     targetClassPaths = extension.getTargetClassPaths()
                 }
-                project.logger.info("Using targetClassPaths:")
-                targetClassPaths.each() {
-                    project.logger.info("\t${it.path}")
-                }
+                logDirs(project, targetClassPaths, 'targetClassPaths')
                 return targetClassPaths
             }
             description = "Analyze class usage"
@@ -182,12 +173,12 @@ class StalkerPlugin implements Plugin<Project> {
         }
     }
 
-    def setClassPaths(project, productFlavor, buildTypes, stalkerExt) {
+    def setAndroidClassPaths(project, productFlavor, buildTypes, stalkerExt) {
         for (bt in buildTypes) {
-            def srcClassPath = getSrcClassPath(project, productFlavor, bt)
+            def srcClassPath = getAndroidSrcClassPath(project, productFlavor, bt)
             setSrcClassPath(srcClassPath, stalkerExt)
 
-            def targetClassPath = getTargetClassPath(project, productFlavor, bt)
+            def targetClassPath = getAndroidTargetClassPath(project, productFlavor, bt)
             setTargetClassPath(targetClassPath, stalkerExt)
         }
     }
@@ -200,7 +191,7 @@ class StalkerPlugin implements Plugin<Project> {
         stalkerExt.targetClassPath targetClassPath
     }
 
-    def getSrcClassPath(project, productFlavor, buildType) {
+    def getAndroidSrcClassPath(project, productFlavor, buildType) {
         if (productFlavor != null) {
             return constructClassPath([project.buildDir.path, 'classes', productFlavor.name,
                                        buildType.name])
@@ -209,7 +200,7 @@ class StalkerPlugin implements Plugin<Project> {
         }
     }
 
-    def getTargetClassPath(project, productFlavor, buildType) {
+    def getAndroidTargetClassPath(project, productFlavor, buildType) {
         if (productFlavor != null) {
             return constructClassPath([project.buildDir.path, 'classes', 'test',
                                        productFlavor.name, buildType.name])
@@ -225,5 +216,12 @@ class StalkerPlugin implements Plugin<Project> {
             path += File.separatorChar
         }
         return path.substring(0, path.size() - 1)
+    }
+
+    def logDirs(project, dirs, description) {
+        project.logger.info("Using ${description}:")
+        dirs.each() {
+            project.logger.info("\t${it.path}" - project.projectDir.path)
+        }
     }
 }

@@ -72,7 +72,7 @@ class StalkerPluginTests {
     public void getSrcClassPath() {
         def project = getAndroidProject(false)
         def plugin = new StalkerPlugin()
-        def classPath = plugin.getSrcClassPath(project, null, project.android.buildTypes.debug)
+        def classPath = plugin.getAndroidSrcClassPath(project, null, project.android.buildTypes.debug)
         def expectedNames = [project.buildDir.name, 'classes',
                              project.android.buildTypes.debug.name]
         verifyClassPath(expectedNames, classPath)
@@ -113,7 +113,7 @@ class StalkerPluginTests {
     public void getSrcClassPathWithProductFlavor() {
         def project = getAndroidProject(true)
         def plugin = new StalkerPlugin()
-        def classPath = plugin.getSrcClassPath(project, project.android.productFlavors.flavor1,
+        def classPath = plugin.getAndroidSrcClassPath(project, project.android.productFlavors.flavor1,
                 project.android.buildTypes.debug)
         def expectedNames = [project.buildDir.name, 'classes',
                              project.android.productFlavors.flavor1.name,
@@ -125,7 +125,7 @@ class StalkerPluginTests {
     public void getTargetClassPath() {
         def project = getAndroidProject(false)
         def plugin = new StalkerPlugin()
-        def classPath = plugin.getTargetClassPath(project, null, project.android.buildTypes.debug)
+        def classPath = plugin.getAndroidTargetClassPath(project, null, project.android.buildTypes.debug)
         def expectedNames = [project.buildDir.name, 'classes', 'test',
                              project.android.buildTypes.debug.name]
         verifyClassPath(expectedNames, classPath)
@@ -135,7 +135,7 @@ class StalkerPluginTests {
     public void getTargetClassPathWithProductFlavor() {
         def project = getAndroidProject(true)
         def plugin = new StalkerPlugin()
-        def classPath = plugin.getTargetClassPath(project, project.android.productFlavors.flavor1,
+        def classPath = plugin.getAndroidTargetClassPath(project, project.android.productFlavors.flavor1,
                 project.android.buildTypes.debug)
         def expectedNames = [project.buildDir.name, 'classes', 'test',
                              project.android.productFlavors.flavor1.name,
@@ -148,7 +148,7 @@ class StalkerPluginTests {
         def project = getAndroidProject(false)
         def stalkerExt = new StalkerExtension()
         def plugin = new StalkerPlugin()
-        plugin.setClassPaths(project, null, project.android.buildTypes, stalkerExt)
+        plugin.setAndroidClassPaths(project, null, project.android.buildTypes, stalkerExt)
         assert 2 == stalkerExt.srcClassPaths.size()
         assert 2 == stalkerExt.targetClassPaths.size()
     }
@@ -158,7 +158,7 @@ class StalkerPluginTests {
         def project = getAndroidProject(true)
         def stalkerExt = new StalkerExtension()
         def plugin = new StalkerPlugin()
-        plugin.setClassPaths(project, project.android.productFlavors.flavor1,
+        plugin.setAndroidClassPaths(project, project.android.productFlavors.flavor1,
                 project.android.buildTypes, stalkerExt)
         assert 2 == stalkerExt.srcClassPaths.size()
         assert 2 == stalkerExt.targetClassPaths.size()
