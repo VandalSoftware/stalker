@@ -109,6 +109,7 @@ class ChangesTests {
     void throwsExceptionForInvalidGitRepo() {
         Project project = ProjectBuilder.builder().build()
         DetectChanges changes = project.task([type: DetectChanges], "changes") as DetectChanges
+        changes.gitDir = new File(project.projectDir, '.git')
         changes.execute()
     }
 
