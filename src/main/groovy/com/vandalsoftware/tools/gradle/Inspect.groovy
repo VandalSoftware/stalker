@@ -36,6 +36,10 @@ class Inspect extends DefaultTask {
         Set srcRoots = srcRoots() as Set
         Set srcClassPaths = classpaths() as Set
         def inputs = input() as Set
+        if (logger.isInfoEnabled()) {
+            printDirs(srcRoots, 'srcRoots')
+            printDirs(srcClassPaths, 'srcClassPaths')
+        }
         // Keep track of unique classes being examined
         Set inputClasses = new LinkedHashSet(inputs)
         LinkedList classesToExamine = new LinkedList(inputs)
@@ -92,6 +96,9 @@ class Inspect extends DefaultTask {
         }
         final ClassCollector targetReader = new ClassCollector()
         def targetClassPaths = targets()
+        if (logger.isInfoEnabled()) {
+            printDirs(targetClassPaths, 'targetClassPaths')
+        }
         targetClassPaths.each() { File dir ->
             targetReader.collect(dir)
         }
@@ -188,5 +195,12 @@ class Inspect extends DefaultTask {
     private static String pathToClassName(String basePath, String path, String extension) {
         return path.substring(basePath.length() + 1,
                 path.indexOf(extension)).replace(File.separatorChar, CLASS_SEPARATOR_CHAR)
+    }
+
+    private def printDirs(dirs, description) {
+        println "Using ${description}:"
+        dirs.each() {
+            println("  ${it.path}" - project.projectDir.path)
+        }
     }
 }
