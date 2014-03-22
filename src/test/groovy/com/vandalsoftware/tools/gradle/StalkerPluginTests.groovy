@@ -16,6 +16,7 @@
 
 package com.vandalsoftware.tools.gradle
 
+import com.vandalsoftware.tools.util.FileUtils
 import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
@@ -51,15 +52,14 @@ class StalkerPluginTests {
 
     @Test
     public void setSrcRoot() {
-        def project = ProjectBuilder.builder().build()
         testSetSrcRoot(['src/main/java'])
         testSetSrcRoot(['src/main/java', 'src/debug/java'])
     }
 
-    private void testSetSrcRoot(srcDirs) {
+    private static void testSetSrcRoot(List srcDirs) {
         def stalkerExt = new StalkerExtension()
         def plugin = new StalkerPlugin()
-        plugin.setSrcRoot(srcDirs, stalkerExt)
+        plugin.addSrcRoots(srcDirs, stalkerExt)
         assert srcDirs.size() == stalkerExt.srcRoots.size()
         def i = 0
         for (f in stalkerExt.srcRoots) {
@@ -73,9 +73,9 @@ class StalkerPluginTests {
         def project = getAndroidProject(false)
         def plugin = new StalkerPlugin()
         def classPath = plugin.getAndroidSrcClassPath(project, null, project.android.buildTypes.debug)
-        def expectedNames = [project.buildDir.name, 'classes',
-                             project.android.buildTypes.debug.name]
-        verifyClassPath(expectedNames, classPath)
+        def expectedClassPath = FileUtils.constructFile(project.buildDir.path, 'classes',
+                             project.android.buildTypes.debug.name)
+        assert expectedClassPath == classPath
     }
 
     private Project getAndroidProject(boolean withProductFlavor) {
@@ -93,54 +93,38 @@ class StalkerPluginTests {
         return project
     }
 
-    private void verifyClassPath(expectedNames, String classPath) {
-        assert classPath != null
-
-        expectedNames.reverseEach() {
-            def lastIndexOf = classPath.lastIndexOf(it, classPath.size())
-            assert lastIndexOf != -1
-            def name = classPath.substring(lastIndexOf, classPath.size())
-            assert it == name
-
-            // Set up for next iteration, remove file separator
-            if (lastIndexOf > 1) {
-                classPath = classPath.substring(0, lastIndexOf - 1)
-            }
-        }
-    }
-
     @Test
     public void getSrcClassPathWithProductFlavor() {
         def project = getAndroidProject(true)
         def plugin = new StalkerPlugin()
         def classPath = plugin.getAndroidSrcClassPath(project, project.android.productFlavors.flavor1,
                 project.android.buildTypes.debug)
-        def expectedNames = [project.buildDir.name, 'classes',
+        def expectedClassPath = FileUtils.constructFile(project.buildDir.path, 'classes',
                              project.android.productFlavors.flavor1.name,
-                             project.android.buildTypes.debug.name]
-        verifyClassPath(expectedNames, classPath)
+                             project.android.buildTypes.debug.name)
+        assert expectedClassPath == classPath
     }
 
     @Test
-    public void getTargetClassPath() {
+    public void getAndroidTestClassPath() {
         def project = getAndroidProject(false)
         def plugin = new StalkerPlugin()
-        def classPath = plugin.getAndroidTargetClassPath(project, null, project.android.buildTypes.debug)
-        def expectedNames = [project.buildDir.name, 'classes', 'test',
-                             project.android.buildTypes.debug.name]
-        verifyClassPath(expectedNames, classPath)
+        def classPath = plugin.getAndroidTestClassPath(project, null, project.android.buildTypes.debug)
+        def expectedClassPath = FileUtils.constructFile(project.buildDir.path, 'classes', 'test',
+                             project.android.buildTypes.debug.name)
+        assert expectedClassPath == classPath
     }
 
     @Test
     public void getTargetClassPathWithProductFlavor() {
         def project = getAndroidProject(true)
         def plugin = new StalkerPlugin()
-        def classPath = plugin.getAndroidTargetClassPath(project, project.android.productFlavors.flavor1,
+        def classPath = plugin.getAndroidTestClassPath(project, project.android.productFlavors.flavor1,
                 project.android.buildTypes.debug)
-        def expectedNames = [project.buildDir.name, 'classes', 'test',
+        def expectedClassPath = FileUtils.constructFile(project.buildDir.path, 'classes', 'test',
                              project.android.productFlavors.flavor1.name,
-                             project.android.buildTypes.debug.name]
-        verifyClassPath(expectedNames, classPath)
+                             project.android.buildTypes.debug.name)
+        assert expectedClassPath == classPath
     }
 
     @Test
@@ -148,8 +132,8 @@ class StalkerPluginTests {
         def project = getAndroidProject(false)
         def stalkerExt = new StalkerExtension()
         def plugin = new StalkerPlugin()
-        plugin.setAndroidClassPaths(project, null, project.android.buildTypes, stalkerExt)
-        assert 2 == stalkerExt.srcClassPaths.size()
+        plugin.addAndroidClassPaths(project, null, project.android.buildTypes, stalkerExt)
+        assert 4 == stalkerExt.srcClassPaths.size()
         assert 2 == stalkerExt.targetClassPaths.size()
     }
 
@@ -158,9 +142,9 @@ class StalkerPluginTests {
         def project = getAndroidProject(true)
         def stalkerExt = new StalkerExtension()
         def plugin = new StalkerPlugin()
-        plugin.setAndroidClassPaths(project, project.android.productFlavors.flavor1,
+        plugin.addAndroidClassPaths(project, project.android.productFlavors.flavor1,
                 project.android.buildTypes, stalkerExt)
-        assert 2 == stalkerExt.srcClassPaths.size()
+        assert 4 == stalkerExt.srcClassPaths.size()
         assert 2 == stalkerExt.targetClassPaths.size()
     }
 
