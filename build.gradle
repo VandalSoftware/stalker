@@ -45,16 +45,6 @@ ext.sonatypePassword = has("sonatypePassword") ? sonatypePassword : null
 
 version = getVersion("0.4.0")
 
-stalker {
-    srcRoot "src/main/java"
-    srcRoot "src/test/java"
-    srcRoot "src/main/groovy"
-    srcRoot "src/test/groovy"
-    srcClassPath "$buildDir/classes/main"
-    srcClassPath "$buildDir/classes/test"
-    targetClassPath "$buildDir/classes/test"
-}
-
 jar {
     baseName = "stalker"
 }
