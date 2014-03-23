@@ -33,34 +33,35 @@ class Inspect extends DefaultTask {
 
     @TaskAction
     void inspect() {
-        Set srcRoots = srcRoots() as Set
-        Set srcClassPaths = classpaths() as Set
-        def inputs = input() as Set
+        StalkerConfiguration config = configuration()
+        Set<File> srcRoots = config.srcRoots
+        Set<File> srcClassPaths = config.srcClassPaths
+        Set<File> inputs = input() as Set
         if (logger.isInfoEnabled()) {
             printDirs(srcRoots, 'srcRoots')
             printDirs(srcClassPaths, 'srcClassPaths')
         }
         // Keep track of unique classes being examined
-        Set inputClasses = new LinkedHashSet(inputs)
-        LinkedList classesToExamine = new LinkedList(inputs)
-        Set inputClassNames = new LinkedHashSet()
+        Set<File> inputClasses = new LinkedHashSet(inputs)
+        LinkedList<File> classesToExamine = new LinkedList(inputs)
+        Set<String> inputClassNames = new LinkedHashSet()
         final ClassCollector sourceReader = new ClassCollector()
         srcClassPaths.each() { File dir ->
             sourceReader.collect(dir)
         }
         def examined = [] as HashSet
         while (!classesToExamine.isEmpty()) {
-            String filePath = classesToExamine.remove()
-            File fileToExamine = new File(filePath)
+            File fileToExamine = classesToExamine.remove()
             if (!fileToExamine.isFile()) {
                 continue
             }
+            String filePath = fileToExamine.absolutePath
             srcRoots.each() { File srcRoot ->
-                if (filePath.startsWith(srcRoot.path)) {
+                if (filePath.startsWith(srcRoot.absolutePath)) {
                     logger.info "Examining $fileToExamine"
                     def fileName = fileToExamine.name
                     def fileExt = fileName.substring(fileName.lastIndexOf('.'))
-                    String relFilePath = filePath.substring(srcRoot.path.length() + 1,
+                    String relFilePath = filePath.substring(srcRoot.absolutePath.length() + 1,
                             filePath.lastIndexOf('.')) + ".class"
                     srcClassPaths.each() { File cp ->
                         File f = new File(cp, relFilePath)
@@ -78,12 +79,12 @@ class Inspect extends DefaultTask {
                             }
                         }
                     }
-                    examined.add(filePath)
+                    examined.add(fileToExamine)
                 }
             }
         }
         final ClassCollector targetReader = new ClassCollector()
-        def targetClassPaths = targets()
+        def targetClassPaths = config.targetClassPaths
         if (logger.isInfoEnabled()) {
             printDirs(targetClassPaths, 'targetClassPaths')
         }
@@ -110,8 +111,9 @@ class Inspect extends DefaultTask {
         File[] used = targetReader.findUsages(inputClassNames)
         used.each() { f ->
             targetClassPaths.each() { File target ->
-                if (f.path.startsWith(target.path)) {
-                    def className = pathToClassName(target.path, f.path, ".class")
+                if (f.absolutePath.startsWith(target.absolutePath)) {
+                    def className = f.absolutePath.substring(target.absolutePath.length() + 1,
+                            f.absolutePath.indexOf(".class")).replace(File.separatorChar, CLASS_SEPARATOR_CHAR)
                     affectedClasses.add(className)
                 }
             }
@@ -132,26 +134,23 @@ class Inspect extends DefaultTask {
                                       inputClasses, classesToExamine, log) {
         classes.each() { className ->
             log(className)
-            def path = classNameToPath(className, srcRoot.path, fileExt)
-            if (!inputClasses.contains(path)) {
-                inputClasses.add(path)
-                classesToExamine.add(path)
+            File classFile = new File(srcRoot.absolutePath, className.replace(CLASS_SEPARATOR_CHAR,
+                    File.separatorChar) + fileExt)
+            if (!inputClasses.contains(classFile)) {
+                inputClasses.add(classFile)
+                classesToExamine.add(classFile)
             }
         }
     }
 
-    private static String classNameToPath(String className, String basePath, String extension) {
-        return new File(basePath, className.replace(CLASS_SEPARATOR_CHAR,
-                File.separatorChar) + extension)
-    }
-
     boolean checkInputs() {
         StringBuilder msg = new StringBuilder()
-        def hasClasspaths = checkPathsExist(classpaths(), msg)
+        StalkerConfiguration config = configuration()
+        def hasClasspaths = checkPathsExist(config.srcClassPaths, msg)
         if (!hasClasspaths) {
             msg.insert(0, "  No such classpaths exist:\n")
         }
-        def hasTargets = checkPathsExist(targets(), msg)
+        def hasTargets = checkPathsExist(config.targetClassPaths, msg)
         if (!hasTargets) {
             msg.insert(0, "  No such targets exist:\n")
         }
@@ -159,7 +158,7 @@ class Inspect extends DefaultTask {
         if (!hasInput) {
             msg.insert(0, "  No inputs.")
         }
-        def hasSrcRoots = checkPathsExist(srcRoots(), msg)
+        def hasSrcRoots = checkPathsExist(config.srcRoots, msg)
         if (!hasSrcRoots) {
             msg.insert(0, "  No such source roots exist:")
         }
@@ -193,15 +192,11 @@ class Inspect extends DefaultTask {
         return atLeastOneExists
     }
 
-    private static String pathToClassName(String basePath, String path, String extension) {
-        return path.substring(basePath.length() + 1,
-                path.indexOf(extension)).replace(File.separatorChar, CLASS_SEPARATOR_CHAR)
-    }
 
     private def printDirs(dirs, description) {
         println "Using ${description}:"
-        dirs.each() {
-            println("  ${it.path}" - project.projectDir.path)
+        dirs.each() { File f ->
+            println("  ${f.absolutePath}" - (project.projectDir.absolutePath + File.separator))
         }
     }
 }

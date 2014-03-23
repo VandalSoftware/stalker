@@ -13,18 +13,16 @@ class InspectTests {
     void groovyFilesCollected() {
         Project project = ProjectBuilder.builder().build()
         Inspect usages = project.task([type: Inspect], "usages", {
-            ext.srcRoots = {
-                [new File("src/main/groovy"), new File("src/test/groovy")] as Set
-            }
-            ext.classpaths = {
-                [new File("build/classes/main"), new File("build/classes/test")] as Set
-            }
-            ext.targets = {
-                [new File("build/classes/test")] as Set
+            ext.configuration = {
+                def config = new StalkerConfiguration()
+                config.addSrcRoots([new File("src/main/groovy"), new File("src/test/groovy")])
+                config.addSrcClassPaths([new File("build/classes/main"), new File("build/classes/test")])
+                config.addTargetClassPaths([new File("build/classes/test")])
+                config
             }
             ext.input = {
-                ["src/main/groovy/com/vandalsoftware/tools/gradle/Inspect.groovy",
-                        "src/test/groovy/com/vandalsoftware/tools/gradle/InspectTests.groovy"] as Set
+                [new File("src/main/groovy/com/vandalsoftware/tools/gradle/Inspect.groovy"),
+                        new File("src/test/groovy/com/vandalsoftware/tools/gradle/InspectTests.groovy")] as Set
             }
         }) as Inspect
         usages.execute()
@@ -42,17 +40,15 @@ class InspectTests {
     void affectedFileInSrcAndTargetClasspath() {
         Project project = ProjectBuilder.builder().build()
         Inspect usages = project.task([type: Inspect], "usages", {
-            ext.srcRoots = {
-                [new File("src/main/groovy"), new File("src/test/groovy")] as Set
-            }
-            ext.classpaths = {
-                [new File("build/classes/main"), new File("build/classes/test")] as Set
-            }
-            ext.targets = {
-                [new File("build/classes/test")] as Set
+            ext.configuration = {
+                def config = new StalkerConfiguration()
+                config.addSrcRoots([new File("src/main/groovy"), new File("src/test/groovy")])
+                config.addSrcClassPaths([new File("build/classes/main"), new File("build/classes/test")])
+                config.addTargetClassPaths([new File("build/classes/test")])
+                config
             }
             ext.input = {
-                ["src/test/groovy/com/vandalsoftware/tests/model/Cat.groovy"] as Set
+                [new File("src/test/groovy/com/vandalsoftware/tests/model/Cat.groovy")] as Set
             }
         }) as Inspect
         usages.execute()

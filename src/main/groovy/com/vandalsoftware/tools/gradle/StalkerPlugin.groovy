@@ -16,7 +16,6 @@
 
 package com.vandalsoftware.tools.gradle
 
-import com.vandalsoftware.tools.util.FileUtils
 import org.eclipse.jgit.lib.Constants
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -32,32 +31,31 @@ class StalkerPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         extension = project.extensions.create('stalker', StalkerExtension)
-        def stalkerExtensionDefaults = new StalkerExtension()
+        DefaultStalkerConfiguration stalkerDefaults = new DefaultStalkerConfiguration()
         project.configure(project) { Project configProject ->
             if (configProject.extensions.findByName('android') &&
                     canSetStalkerExtensionDefaults(configProject)) {
                 configProject.android.sourceSets.each() { sourceSet ->
-                    addSrcRoots(sourceSet.java.getSrcDirs(), stalkerExtensionDefaults)
+                    stalkerDefaults.addSrcRoots(sourceSet.java.getSrcDirs())
                 }
 
                 gradle.taskGraph.whenReady { taskGraph ->
                     if (configProject.android.productFlavors.size() > 0) {
                         for (pf in configProject.android.productFlavors) {
                             println "flavor: ${pf.name}"
-                            addAndroidClassPaths(configProject, pf, configProject.android.buildTypes, stalkerExtensionDefaults)
+                            stalkerDefaults.addAndroidClassPaths(configProject, pf, configProject.android.buildTypes)
                         }
                     } else {
-                        addAndroidClassPaths(configProject, null, configProject.android.buildTypes, stalkerExtensionDefaults)
+                        stalkerDefaults.addAndroidClassPaths(configProject, null, configProject.android.buildTypes)
                     }
                 }
             }
             if (configProject.plugins.hasPlugin('java') || configProject.plugins.hasPlugin('groovy')) {
                 configProject.sourceSets.each() { SourceSet sourceSet ->
-                    addSrcRoots(sourceSet.allJava.srcDirs, stalkerExtensionDefaults)
-                    addSrcClassPath(sourceSet.output.classesDir, stalkerExtensionDefaults)
+                    stalkerDefaults.addSrcRoots(sourceSet.allJava.srcDirs)
+                    stalkerDefaults.addSrcClassPath(sourceSet.output.classesDir)
                 }
-                addTargetClassPath(configProject.sourceSets.test.output.classesDir,
-                        stalkerExtensionDefaults)
+                stalkerDefaults.addTargetClassPath(configProject.sourceSets.test.output.classesDir)
             }
         }
         DetectChanges changesTask = project.task([type: DetectChanges], 'changes', {
@@ -71,35 +69,27 @@ class StalkerPlugin implements Plugin<Project> {
             }
         }) as DetectChanges
         Task stalkTask = project.task([type: Inspect, dependsOn: changesTask], 'stalk', {
-            ext.srcRoots = {
-                def srcRoots
+            StalkerConfiguration config = new StalkerConfiguration();
+            ext.configuration = {
                 if (extension.getSrcRoots().size() == 0) {
-                    srcRoots = stalkerExtensionDefaults.getSrcRoots()
+                    config.addSrcRoots(stalkerDefaults.getSrcRoots())
                 } else {
-                    srcRoots = extension.getSrcRoots()
+                    config.addSrcRoots(extension.getSrcRoots())
                 }
-                return srcRoots
-            }
-            ext.classpaths = {
-                def srcClassPaths
                 if (extension.getSrcClassPaths().size() == 0) {
-                    srcClassPaths = stalkerExtensionDefaults.getSrcClassPaths()
+                    config.addSrcClassPaths(stalkerDefaults.getSrcClassPaths())
                 } else {
-                    srcClassPaths = extension.getSrcClassPaths()
+                    config.addSrcClassPaths(extension.getSrcClassPaths())
                 }
-                return srcClassPaths
+                if (extension.getTargetClassPaths().size() == 0) {
+                    config.addTargetClassPaths(stalkerDefaults.getTargetClassPaths())
+                } else {
+                    config.addTargetClassPaths(extension.getTargetClassPaths())
+                }
+                config
             }
             ext.input = {
                 return changesTask.getChangedFiles()
-            }
-            ext.targets = {
-                def targetClassPaths
-                if (extension.getTargetClassPaths().size() == 0) {
-                    targetClassPaths = stalkerExtensionDefaults.getTargetClassPaths()
-                } else {
-                    targetClassPaths = extension.getTargetClassPaths()
-                }
-                return targetClassPaths
             }
             description = 'Analyze class usage'
             group = 'Analyze'
@@ -129,7 +119,7 @@ class StalkerPlugin implements Plugin<Project> {
     /**
      * @return true if StalkerExtension defaults can be set on the android project
      */
-    private static def canSetStalkerExtensionDefaults(project) {
+    private def canSetStalkerExtensionDefaults(project) {
         String androidPluginVersion = ''
         project.buildscript.configurations.classpath.resolvedConfiguration.firstLevelModuleDependencies.each() {
             if ('com.android.tools.build' == it.moduleGroup) {
@@ -165,48 +155,5 @@ class StalkerPlugin implements Plugin<Project> {
             }
         }
         return isNewer
-    }
-
-    static def addSrcRoots(srcDirs, stalkerExt) {
-        for (d in srcDirs) {
-            stalkerExt.srcRoot d
-        }
-    }
-
-    static def addAndroidClassPaths(project, productFlavor, buildTypes, stalkerExt) {
-        for (bt in buildTypes) {
-            def srcClassPath = getAndroidSrcClassPath(project, productFlavor, bt)
-            addSrcClassPath(srcClassPath, stalkerExt)
-
-            def targetClassPath = getAndroidTestClassPath(project, productFlavor, bt)
-            addSrcClassPath(targetClassPath, stalkerExt)
-            addTargetClassPath(targetClassPath, stalkerExt)
-        }
-    }
-
-    static def addSrcClassPath(srcClassPath, stalkerExt) {
-        stalkerExt.srcClassPath srcClassPath
-    }
-
-    static def addTargetClassPath(targetClassPath, stalkerExt) {
-        stalkerExt.targetClassPath targetClassPath
-    }
-
-    static File getAndroidSrcClassPath(project, productFlavor, buildType) {
-        if (productFlavor != null) {
-            return FileUtils.constructFile(project.buildDir.path, 'classes', productFlavor.name,
-                    buildType.name)
-        } else {
-            return FileUtils.constructFile(project.buildDir.path, 'classes', buildType.name)
-        }
-    }
-
-    static File getAndroidTestClassPath(project, productFlavor, buildType) {
-        if (productFlavor != null) {
-            return FileUtils.constructFile(project.buildDir.path, 'classes', 'test',
-                    productFlavor.name, buildType.name)
-        } else {
-            return FileUtils.constructFile(project.buildDir.path, 'classes', 'test', buildType.name)
-        }
     }
 }
