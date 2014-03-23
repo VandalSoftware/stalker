@@ -56,8 +56,6 @@ class StalkerPlugin implements Plugin<Project> {
                     addSrcRoots(sourceSet.allJava.srcDirs, stalkerExtensionDefaults)
                     addSrcClassPath(sourceSet.output.classesDir, stalkerExtensionDefaults)
                 }
-                addSrcClassPath(configProject.sourceSets.test.output.classesDir,
-                        stalkerExtensionDefaults)
                 addTargetClassPath(configProject.sourceSets.test.output.classesDir,
                         stalkerExtensionDefaults)
             }
