@@ -23,6 +23,7 @@ import org.junit.Test
 import static com.vandalsoftware.tools.util.FileUtils.constructFile
 
 /**
+ * @author Lien Tran Mamitsuka
  * @author Jonathan Le
  */
 class DefaultStalkerConfigurationTests {

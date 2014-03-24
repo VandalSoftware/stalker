@@ -19,6 +19,7 @@ package com.vandalsoftware.tools.gradle
 import com.vandalsoftware.tools.util.FileUtils
 
 /**
+ * @author Lien Tran Mamitsuka
  * @author Jonathan Le
  */
 class DefaultStalkerConfiguration extends StalkerConfiguration {
