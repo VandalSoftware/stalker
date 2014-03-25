@@ -36,4 +36,9 @@ class FileUtilsTests {
     void multiplePathParts() {
         assert 'foo' + File.separator + 'bar' == FileUtils.constructFile('foo', 'bar').path
     }
+
+    @Test
+    void fileFromParts() {
+        assert 'foo' + File.separator + 'bar.txt' == FileUtils.constructFile('foo', 'bar.txt').path
+    }
 }

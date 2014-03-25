@@ -22,9 +22,12 @@ package com.vandalsoftware.tools.util
 public abstract class FileUtils {
     public static File constructFile(String ... pathParts) {
         def path = ''
-        pathParts.each {
-            path += it
-            path += File.separatorChar
+        int length = pathParts.length
+        for (int i = 0; i < length; i++) {
+            path += pathParts[i]
+            if (i < length - 1) {
+                path += File.separatorChar
+            }
         }
         return new File(path)
     }
