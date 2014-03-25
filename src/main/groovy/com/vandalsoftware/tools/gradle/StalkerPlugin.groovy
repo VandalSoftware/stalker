@@ -20,6 +20,7 @@ import org.eclipse.jgit.lib.Constants
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.SourceSet
 
 /**
  * @author Jonathan Le
@@ -29,8 +30,35 @@ class StalkerPlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
-        extension = project.extensions.create("stalker", StalkerExtension)
-        DetectChanges changesTask = project.task([type: DetectChanges], "changes", {
+        extension = project.extensions.create('stalker', StalkerExtension)
+        DefaultStalkerConfiguration stalkerDefaults = new DefaultStalkerConfiguration()
+        project.configure(project) { Project configProject ->
+            if (configProject.extensions.findByName('android') &&
+                    canSetStalkerExtensionDefaults(configProject)) {
+                configProject.android.sourceSets.each() { sourceSet ->
+                    stalkerDefaults.addSrcRoots(sourceSet.java.getSrcDirs())
+                }
+
+                gradle.taskGraph.whenReady { taskGraph ->
+                    if (configProject.android.productFlavors.size() > 0) {
+                        for (pf in configProject.android.productFlavors) {
+                            println "flavor: ${pf.name}"
+                            stalkerDefaults.addAndroidClassPaths(configProject, pf, configProject.android.buildTypes)
+                        }
+                    } else {
+                        stalkerDefaults.addAndroidClassPaths(configProject, null, configProject.android.buildTypes)
+                    }
+                }
+            }
+            if (configProject.plugins.hasPlugin('java') || configProject.plugins.hasPlugin('groovy')) {
+                configProject.sourceSets.each() { SourceSet sourceSet ->
+                    stalkerDefaults.addSrcRoots(sourceSet.allJava.srcDirs)
+                    stalkerDefaults.addSrcClassPath(sourceSet.output.classesDir)
+                }
+                stalkerDefaults.addTargetClassPath(configProject.sourceSets.test.output.classesDir)
+            }
+        }
+        DetectChanges changesTask = project.task([type: DetectChanges], 'changes', {
             ext.revision = {
                 def ref = extension.getRevision()
                 if (ref) {
@@ -40,69 +68,31 @@ class StalkerPlugin implements Plugin<Project> {
                 }
             }
         }) as DetectChanges
-        Task stalkTask = project.task([type: Inspect, dependsOn: changesTask], "stalk", {
-            def stalkerExtensionDefaults = new StalkerExtension()
-            project.configure(project) {
-                if (it.extensions.findByName('android') &&
-                        canSetStalkerExtensionDefaults(project)) {
-                    project.android.sourceSets.each() {
-                        setSrcRoot(it.java.getSrcDirs(), stalkerExtensionDefaults)
-                    }
-
-                    gradle.taskGraph.whenReady { taskGraph ->
-                        if (android.productFlavors.size() > 0) {
-                            for (pf in android.productFlavors) {
-                                setAndroidClassPaths(project, pf, android.buildTypes, stalkerExtensionDefaults)
-                            }
-                        } else {
-                            setAndroidClassPaths(project, null, android.buildTypes, stalkerExtensionDefaults)
-                        }
-                    }
-                } else if (it.plugins.hasPlugin('java')) {
-                    project.sourceSets.each() {
-                        setSrcRoot(it.java.getSrcDirs(), stalkerExtensionDefaults)
-                        setSrcClassPath(it.output.classesDir, stalkerExtensionDefaults)
-                    }
-                    setTargetClassPath(project.sourceSets.test.output.classesDir,
-                        stalkerExtensionDefaults)
-                }
-            }
-
-            ext.srcRoots = {
-                def srcRoots
+        Task stalkTask = project.task([type: Inspect, dependsOn: changesTask], 'stalk', {
+            StalkerConfiguration config = new StalkerConfiguration();
+            ext.configuration = {
                 if (extension.getSrcRoots().size() == 0) {
-                    srcRoots = stalkerExtensionDefaults.getSrcRoots()
+                    config.addSrcRoots(stalkerDefaults.getSrcRoots())
                 } else {
-                    srcRoots = extension.getSrcRoots()
+                    config.addSrcRoots(extension.getSrcRoots())
                 }
-                logDirs(project, srcRoots, 'srcRoots')
-                return srcRoots
-            }
-            ext.classpaths = {
-                def srcClassPaths
                 if (extension.getSrcClassPaths().size() == 0) {
-                    srcClassPaths = stalkerExtensionDefaults.getSrcClassPaths()
+                    config.addSrcClassPaths(stalkerDefaults.getSrcClassPaths())
                 } else {
-                    srcClassPaths = extension.getSrcClassPaths()
+                    config.addSrcClassPaths(extension.getSrcClassPaths())
                 }
-                logDirs(project, srcClassPaths, 'srcClassPaths')
-                return srcClassPaths
+                if (extension.getTargetClassPaths().size() == 0) {
+                    config.addTargetClassPaths(stalkerDefaults.getTargetClassPaths())
+                } else {
+                    config.addTargetClassPaths(extension.getTargetClassPaths())
+                }
+                config
             }
             ext.input = {
                 return changesTask.getChangedFiles()
             }
-            ext.targets = {
-                def targetClassPaths
-                if (extension.getTargetClassPaths().size() == 0) {
-                    targetClassPaths = stalkerExtensionDefaults.getTargetClassPaths()
-                } else {
-                    targetClassPaths = extension.getTargetClassPaths()
-                }
-                logDirs(project, targetClassPaths, 'targetClassPaths')
-                return targetClassPaths
-            }
-            description = "Analyze class usage"
-            group = "Analyze"
+            description = 'Analyze class usage'
+            group = 'Analyze'
         }) << {
             if (extension.standardOutput != null) {
                 PrintStream out = new PrintStream(extension.standardOutput, true)
@@ -112,12 +102,12 @@ class StalkerPlugin implements Plugin<Project> {
                 out.close()
             } else {
                 if (affectedClasses.size() > 0) {
-                    project.logger.lifecycle "Affected classes:"
+                    project.logger.lifecycle 'Affected classes:'
                     affectedClasses.each() { className ->
                         project.logger.lifecycle "  $className"
                     }
                 } else {
-                    project.logger.lifecycle "No affected classes."
+                    project.logger.lifecycle 'No affected classes.'
                 }
             }
         }
@@ -129,8 +119,8 @@ class StalkerPlugin implements Plugin<Project> {
     /**
      * @return true if StalkerExtension defaults can be set on the android project
      */
-    def canSetStalkerExtensionDefaults(project) {
-        def androidPluginVersion = []
+    private def canSetStalkerExtensionDefaults(project) {
+        String androidPluginVersion = ''
         project.buildscript.configurations.classpath.resolvedConfiguration.firstLevelModuleDependencies.each() {
             if ('com.android.tools.build' == it.moduleGroup) {
                 androidPluginVersion = it.moduleVersion
@@ -145,9 +135,9 @@ class StalkerPlugin implements Plugin<Project> {
     /**
      * @return true if version1 is newer than version2
      */
-    def isVersionNewer(version1, version2) {
-        def version1Array = version1.split("\\.")
-        def version2Array = version2.split("\\.")
+    static def isVersionNewer(String version1, String version2) {
+        def version1Array = version1.split('\\.')
+        def version2Array = version2.split('\\.')
         def length = Math.min(version1Array.size(), version2Array.size())
 
         def isNewer = false
@@ -165,63 +155,5 @@ class StalkerPlugin implements Plugin<Project> {
             }
         }
         return isNewer
-    }
-
-    def setSrcRoot(srcDirs, stalkerExt) {
-        for (d in srcDirs) {
-            stalkerExt.srcRoot d
-        }
-    }
-
-    def setAndroidClassPaths(project, productFlavor, buildTypes, stalkerExt) {
-        for (bt in buildTypes) {
-            def srcClassPath = getAndroidSrcClassPath(project, productFlavor, bt)
-            setSrcClassPath(srcClassPath, stalkerExt)
-
-            def targetClassPath = getAndroidTargetClassPath(project, productFlavor, bt)
-            setTargetClassPath(targetClassPath, stalkerExt)
-        }
-    }
-
-    def setSrcClassPath(srcClassPath, stalkerExt) {
-        stalkerExt.srcClassPath srcClassPath
-    }
-
-    def setTargetClassPath(targetClassPath, stalkerExt) {
-        stalkerExt.targetClassPath targetClassPath
-    }
-
-    def getAndroidSrcClassPath(project, productFlavor, buildType) {
-        if (productFlavor != null) {
-            return constructClassPath([project.buildDir.path, 'classes', productFlavor.name,
-                                       buildType.name])
-        } else {
-            return constructClassPath([project.buildDir.path, 'classes', buildType.name])
-        }
-    }
-
-    def getAndroidTargetClassPath(project, productFlavor, buildType) {
-        if (productFlavor != null) {
-            return constructClassPath([project.buildDir.path, 'classes', 'test',
-                                       productFlavor.name, buildType.name])
-        } else {
-            return constructClassPath([project.buildDir.path, 'classes', 'test', buildType.name])
-        }
-    }
-
-    def constructClassPath(names) {
-        def path = ''
-        names.each {
-            path += it
-            path += File.separatorChar
-        }
-        return path.substring(0, path.size() - 1)
-    }
-
-    def logDirs(project, dirs, description) {
-        project.logger.info("Using ${description}:")
-        dirs.each() {
-            project.logger.info("\t${it.path}" - project.projectDir.path)
-        }
     }
 }

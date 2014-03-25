@@ -14,13 +14,6 @@
  * limitations under the License.
  */
 
-def localRepo = file("../../build/repo")
-
-repositories {
-    maven { url(localRepo) }
-    maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
-    mavenCentral()
-}
-dependencies {
-    classpath "com.vandalsoftware.tools.gradle:stalker:0.4.0-SNAPSHOT"
-}
+include 'tests:single'
+include 'tests:single-android'
+include 'tests:single-android-library'

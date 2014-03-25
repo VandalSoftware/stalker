@@ -14,6 +14,21 @@
  * limitations under the License.
  */
 
-include 'single'
-include 'single-android'
-include 'single-android-library'
+package com.vandalsoftware.tools.util
+
+/**
+ * @author Jonathan Le
+ */
+public abstract class FileUtils {
+    public static File constructFile(String ... pathParts) {
+        def path = ''
+        int length = pathParts.length
+        for (int i = 0; i < length; i++) {
+            path += pathParts[i]
+            if (i < length - 1) {
+                path += File.separatorChar
+            }
+        }
+        return new File(path)
+    }
+}

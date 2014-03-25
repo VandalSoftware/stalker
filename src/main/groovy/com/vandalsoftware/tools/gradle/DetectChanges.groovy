@@ -45,6 +45,7 @@ import org.gradle.api.tasks.TaskAction
  * @author Jonathan Le
  */
 class DetectChanges extends DefaultTask {
+    File gitDir
     Set<File> changedFiles
 
     DetectChanges() {
@@ -53,14 +54,13 @@ class DetectChanges extends DefaultTask {
 
     @TaskAction
     void detect() {
-        def file = new File(project.rootDir, '.git')
         Repository repository = new FileRepositoryBuilder()
-                .setGitDir(file)
+                .setGitDir(gitDir)
                 .readEnvironment()
                 .findGitDir()
                 .build()
         if (!repository.getObjectDatabase().exists()) {
-            throw new RepositoryNotFoundException("Unknown repository: " + file)
+            throw new RepositoryNotFoundException("Unknown repository: " + gitDir)
         }
         RevWalk revWalk = new RevWalk(repository)
         try {

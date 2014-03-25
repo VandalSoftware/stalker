@@ -20,7 +20,7 @@ import org.gradle.api.Project
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 
-import static org.junit.Assert.assertTrue
+import static com.vandalsoftware.tools.util.FileUtils.constructFile
 
 /**
  * @author Jonathan Le
@@ -30,19 +30,19 @@ class StalkerPluginTests {
     public void stalkerPluginAddsStalkTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'stalker'
-        assertTrue(project.tasks.stalk instanceof Inspect)
+        assert project.tasks.stalk instanceof Inspect
     }
 
     @Test
     public void stalkerPluginAddsChangesTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'stalker'
-        assertTrue(project.tasks.changes instanceof DetectChanges)
+        assert project.tasks.changes instanceof DetectChanges
     }
 
     @Test
     public void isVersionNewer() {
-        def plugin = new StalkerPlugin()
+        StalkerPlugin plugin = new StalkerPlugin()
         assert plugin.isVersionNewer('0.9.1', '0.9.0')
         assert plugin.isVersionNewer('0.9.0', '0.9.0')
         assert plugin.isVersionNewer('0.9.0-SNAPSHOT', '0.9.0')
@@ -50,127 +50,42 @@ class StalkerPluginTests {
     }
 
     @Test
-    public void setSrcRoot() {
-        def project = ProjectBuilder.builder().build()
-        testSetSrcRoot(['src/main/java'])
-        testSetSrcRoot(['src/main/java', 'src/debug/java'])
-    }
-
-    private void testSetSrcRoot(srcDirs) {
-        def stalkerExt = new StalkerExtension()
-        def plugin = new StalkerPlugin()
-        plugin.setSrcRoot(srcDirs, stalkerExt)
-        assert srcDirs.size() == stalkerExt.srcRoots.size()
-        def i = 0
-        for (f in stalkerExt.srcRoots) {
-            assert srcDirs[i] == f.path
-            i += 1
-        }
-    }
-
-    @Test
-    public void getSrcClassPath() {
-        def project = getAndroidProject(false)
-        def plugin = new StalkerPlugin()
-        def classPath = plugin.getAndroidSrcClassPath(project, null, project.android.buildTypes.debug)
-        def expectedNames = [project.buildDir.name, 'classes',
-                             project.android.buildTypes.debug.name]
-        verifyClassPath(expectedNames, classPath)
-    }
-
-    private Project getAndroidProject(boolean withProductFlavor) {
-        def project = ProjectBuilder.builder().build()
-        project.apply plugin: 'android'
-        if (withProductFlavor) {
-            project.android {
-                productFlavors {
-                    flavor1 {
-                        packageName "com.example.flavor1"
-                    }
-                }
-            }
-        }
-        return project
-    }
-
-    private void verifyClassPath(expectedNames, String classPath) {
-        assert classPath != null
-
-        expectedNames.reverseEach() {
-            def lastIndexOf = classPath.lastIndexOf(it, classPath.size())
-            assert lastIndexOf != -1
-            def name = classPath.substring(lastIndexOf, classPath.size())
-            assert it == name
-
-            // Set up for next iteration, remove file separator
-            if (lastIndexOf > 1) {
-                classPath = classPath.substring(0, lastIndexOf - 1)
-            }
-        }
-    }
-
-    @Test
-    public void getSrcClassPathWithProductFlavor() {
-        def project = getAndroidProject(true)
-        def plugin = new StalkerPlugin()
-        def classPath = plugin.getAndroidSrcClassPath(project, project.android.productFlavors.flavor1,
-                project.android.buildTypes.debug)
-        def expectedNames = [project.buildDir.name, 'classes',
-                             project.android.productFlavors.flavor1.name,
-                             project.android.buildTypes.debug.name]
-        verifyClassPath(expectedNames, classPath)
-    }
-
-    @Test
-    public void getTargetClassPath() {
-        def project = getAndroidProject(false)
-        def plugin = new StalkerPlugin()
-        def classPath = plugin.getAndroidTargetClassPath(project, null, project.android.buildTypes.debug)
-        def expectedNames = [project.buildDir.name, 'classes', 'test',
-                             project.android.buildTypes.debug.name]
-        verifyClassPath(expectedNames, classPath)
-    }
-
-    @Test
-    public void getTargetClassPathWithProductFlavor() {
-        def project = getAndroidProject(true)
-        def plugin = new StalkerPlugin()
-        def classPath = plugin.getAndroidTargetClassPath(project, project.android.productFlavors.flavor1,
-                project.android.buildTypes.debug)
-        def expectedNames = [project.buildDir.name, 'classes', 'test',
-                             project.android.productFlavors.flavor1.name,
-                             project.android.buildTypes.debug.name]
-        verifyClassPath(expectedNames, classPath)
-    }
-
-    @Test
-    public void setClassPaths() {
-        def project = getAndroidProject(false)
-        def stalkerExt = new StalkerExtension()
-        def plugin = new StalkerPlugin()
-        plugin.setAndroidClassPaths(project, null, project.android.buildTypes, stalkerExt)
-        assert 2 == stalkerExt.srcClassPaths.size()
-        assert 2 == stalkerExt.targetClassPaths.size()
-    }
-
-    @Test
-    public void setClassPathsWithProductFlavor() {
-        def project = getAndroidProject(true)
-        def stalkerExt = new StalkerExtension()
-        def plugin = new StalkerPlugin()
-        plugin.setAndroidClassPaths(project, project.android.productFlavors.flavor1,
-                project.android.buildTypes, stalkerExt)
-        assert 2 == stalkerExt.srcClassPaths.size()
-        assert 2 == stalkerExt.targetClassPaths.size()
-    }
-
-    @Test
     public void stalkerExtensionDefaultsForJava() {
         def project = ProjectBuilder.builder().build()
         project.apply plugin: 'java'
         project.apply plugin: 'stalker'
-        assert 2 == project.tasks.stalk.ext.srcRoots.call().size()
-        assert 2 == project.tasks.stalk.ext.classpaths.call().size()
-        assert 1 == project.tasks.stalk.ext.targets.call().size()
+        def StalkerConfiguration config = project.tasks.stalk.ext.configuration()
+        def srcRoots = config.srcRoots
+        assert 2 == srcRoots.size()
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'main', 'java'))
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'test', 'java'))
+        def classpaths = config.srcClassPaths
+        assert 2 == classpaths.size()
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'test'))
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'main'))
+        def targets = config.targetClassPaths
+        assert 1 == targets.size()
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'test'))
+    }
+
+    @Test
+    public void stalkerExtensionDefaultsForGroovy() {
+        def project = ProjectBuilder.builder().build()
+        project.apply plugin: 'groovy'
+        project.apply plugin: 'stalker'
+        def StalkerConfiguration config = project.tasks.stalk.ext.configuration()
+        def srcRoots = config.srcRoots
+        assert 4 == srcRoots.size()
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'main', 'java'))
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'test', 'java'))
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'main', 'groovy'))
+        assert srcRoots.contains(constructFile(project.projectDir.path, 'src', 'test', 'groovy'))
+        def classpaths = config.srcClassPaths
+        assert 2 == classpaths.size()
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'test'))
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'main'))
+        def targets = config.targetClassPaths
+        assert 1 == targets.size()
+        assert classpaths.contains(constructFile(project.buildDir.path, 'classes', 'test'))
     }
 }

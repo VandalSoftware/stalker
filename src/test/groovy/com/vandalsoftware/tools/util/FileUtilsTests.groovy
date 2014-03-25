@@ -14,13 +14,31 @@
  * limitations under the License.
  */
 
-def localRepo = file("../../build/repo")
+package com.vandalsoftware.tools.util
 
-repositories {
-    maven { url(localRepo) }
-    maven { url("https://oss.sonatype.org/content/repositories/snapshots/") }
-    mavenCentral()
-}
-dependencies {
-    classpath "com.vandalsoftware.tools.gradle:stalker:0.4.0-SNAPSHOT"
+import org.junit.Test
+
+/**
+ * @author Jonathan Le
+ */
+class FileUtilsTests {
+    @Test
+    void noPathParts() {
+        assert '' == FileUtils.constructFile().path
+    }
+
+    @Test
+    void singlePathPart() {
+        assert 'foo' == FileUtils.constructFile('foo').path
+    }
+
+    @Test
+    void multiplePathParts() {
+        assert 'foo' + File.separator + 'bar' == FileUtils.constructFile('foo', 'bar').path
+    }
+
+    @Test
+    void fileFromParts() {
+        assert 'foo' + File.separator + 'bar.txt' == FileUtils.constructFile('foo', 'bar.txt').path
+    }
 }

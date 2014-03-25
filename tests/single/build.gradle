@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import com.vandalsoftware.tools.gradle.Usages
+import com.vandalsoftware.tools.gradle.Inspect
 
 buildscript {
-    apply from: "$rootProject.projectDir/gradle/buildscript.gradle", to: buildscript
+    apply from: "../gradle/buildscript.gradle", to: buildscript
 }
 
 apply plugin: 'groovy'
@@ -32,7 +32,7 @@ dependencies {
 /**
  * ../../gradlew usages --info
  */
-task usages(type: Usages, dependsOn: check) {
+task usages(type: Inspect, dependsOn: check) {
     ext.srcRoots = {
         [new File("src/main/java")] as Set
     }
