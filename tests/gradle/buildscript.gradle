@@ -22,5 +22,5 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    classpath "com.vandalsoftware.tools.gradle:stalker:0.4.0-SNAPSHOT"
+    classpath "com.vandalsoftware.tools.gradle:stalker:+"
 }
