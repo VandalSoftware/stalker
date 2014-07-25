@@ -100,15 +100,14 @@ class StalkerPlugin implements Plugin<Project> {
                     out.println(it)
                 }
                 out.close()
-            } else {
-                if (affectedClasses.size() > 0) {
-                    project.logger.lifecycle 'Affected classes:'
-                    affectedClasses.each() { className ->
-                        project.logger.lifecycle "  $className"
-                    }
-                } else {
-                    project.logger.lifecycle 'No affected classes.'
+            }
+            if (affectedClasses.size() > 0) {
+                project.logger.lifecycle 'Affected classes:'
+                affectedClasses.each() { className ->
+                    project.logger.lifecycle "  $className"
                 }
+            } else {
+                project.logger.lifecycle 'No affected classes.'
             }
         }
         stalkTask.onlyIf {

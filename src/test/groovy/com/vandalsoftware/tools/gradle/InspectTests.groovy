@@ -55,4 +55,27 @@ class InspectTests {
         assertTrue('Cat is an affected file',
                 usages.affectedClasses.contains("com.vandalsoftware.tests.model.Cat"))
     }
+
+    /**
+     * Tests that there is an affected file when the input file is in both the source and the
+     * target class paths.
+     */
+    @Test
+    void skipsFilesWithNoExtension() {
+        Project project = ProjectBuilder.builder().build()
+        Inspect usages = project.task([type: Inspect], "usages", {
+            ext.configuration = {
+                def config = new StalkerConfiguration()
+                config.addSrcRoots([new File("src/main/groovy"), new File("src/test/groovy")])
+                config.addSrcClassPaths([new File("build/classes/main"), new File("build/classes/test")])
+                config.addTargetClassPaths([new File("build/classes/test")])
+                config
+            }
+            ext.input = {
+                [new File("LICENSE")] as Set
+            }
+        }) as Inspect
+        usages.execute()
+        assert usages.affectedClasses.isEmpty()
+    }
 }

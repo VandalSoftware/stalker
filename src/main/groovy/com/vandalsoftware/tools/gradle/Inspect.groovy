@@ -58,26 +58,31 @@ class Inspect extends DefaultTask {
             String filePath = fileToExamine.absolutePath
             srcRoots.each() { File srcRoot ->
                 if (filePath.startsWith(srcRoot.absolutePath)) {
-                    logger.info "Examining $fileToExamine"
                     def fileName = fileToExamine.name
-                    def fileExt = fileName.substring(fileName.lastIndexOf('.'))
-                    String relFilePath = filePath.substring(srcRoot.absolutePath.length() + 1,
-                            filePath.lastIndexOf('.')) + ".class"
-                    srcClassPaths.each() { File cp ->
-                        File f = new File(cp, relFilePath)
-                        ClassInfo info = sourceReader.collectFile(f)
-                        if (info != null) {
-                            String cname = info.thisClassName
-                            inputClassNames.add(cname)
-                            collectInputs(sourceReader.findSubclasses(cname),
-                                    srcRoot, fileExt, inputClasses, classesToExamine,
-                                    { logger.info "  $it extends $cname" })
-                            if (info.isInterface()) {
-                                collectInputs(sourceReader.findImplementations(cname),
+                    int lastIndexOf = fileName.lastIndexOf('.')
+                    if (lastIndexOf != -1) {
+                        logger.info "Examining $fileToExamine"
+                        def fileExt = fileName.substring(lastIndexOf)
+                        String relFilePath = filePath.substring(srcRoot.absolutePath.length() + 1,
+                                filePath.lastIndexOf('.')) + ".class"
+                        srcClassPaths.each() { File cp ->
+                            File f = new File(cp, relFilePath)
+                            ClassInfo info = sourceReader.collectFile(f)
+                            if (info != null) {
+                                String cname = info.thisClassName
+                                inputClassNames.add(cname)
+                                collectInputs(sourceReader.findSubclasses(cname),
                                         srcRoot, fileExt, inputClasses, classesToExamine,
-                                        { logger.info "  $it implements $cname" })
+                                        { logger.info "  $it extends $cname" })
+                                if (info.isInterface()) {
+                                    collectInputs(sourceReader.findImplementations(cname),
+                                            srcRoot, fileExt, inputClasses, classesToExamine,
+                                            { logger.info "  $it implements $cname" })
+                                }
                             }
                         }
+                    } else {
+                        logger.info "Skipping $fileToExamine"
                     }
                     examined.add(fileToExamine)
                 }
